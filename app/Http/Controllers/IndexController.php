@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Status;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Redis;
 use Predis\Connection\ConnectionException;
 
@@ -18,6 +19,9 @@ class IndexController extends Controller
      */
     public function index()
     {
+
+        dd(Queue::connection()->getRedis()->zrange('queues:default:delayed', 0, -1));
+
         $status = Status::OK();
         $redisStatus = Status::OK();
 

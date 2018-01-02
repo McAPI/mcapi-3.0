@@ -25,7 +25,10 @@ class GuzzleProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton('GuzzleHttp\Client', function () {
-            return new Client();
+            $client = new Client([
+                'http_errors' => false
+            ]);
+            return $client;
         });
     }
 }

@@ -17,4 +17,9 @@ class ExceptionCodes
         return 1500;
     }
 
+    public static function INTERNAL_ILLEGAL_STATE_EXCEPTION() : int
+    {
+        return 1501;
+    }
+
 }

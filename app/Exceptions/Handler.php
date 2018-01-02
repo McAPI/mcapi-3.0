@@ -51,6 +51,7 @@ class Handler extends ExceptionHandler
             return response()->json([
                 'exception'     => 'InternalException',
                 'message'       => $e->getMessage(),
+                'debugMessage'  => $e->getDebugMessage(),
                 'code'          => $e->getCode(),
                 'origin'        => $e->getResponse(),
                 'additional'    => $e->getAdditional(),

@@ -18,6 +18,17 @@ class Status
         return 200;
     }
 
+    public final static function ACCEPTED() : int
+    {
+        return 202;
+    }
+
+
+    public final static function NO_CONTENT() : int
+    {
+        return 204;
+    }
+
     public final static function ERROR_INTERNAL_SERVER_ERROR() : int
     {
         return 500;
@@ -34,10 +45,12 @@ class Status
         switch ($code) {
 
             case 200: return "Ok";
+            case 202: return "Accepted";
+            case 204: return "No Content";
             case 400: return "Client - Bad Request";
             case 500: return "Server - Internal Error";
 
-            default: return "Unknown Error Code - Please report this on GitHub.";
+            default: return "Internal Error: Unknown Error Code - Please report this on GitHub.";
 
         }
 

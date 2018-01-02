@@ -3,17 +3,18 @@
 namespace App\Exceptions;
 
 
-use App\McAPIResponse;
+use App\Responses\McAPIResponse;
 
 class InternalException extends \Exception
 {
 
     private $response;
     private $additional;
-    private $trace;
+    private $debugMessage;
 
-    public function __construct(String $message, int $code, McAPIResponse $response, array $additional)
+    public function __construct(String $debugMessage, int $code, McAPIResponse $response, array $additional)
     {
+
         parent::__construct(
                 'Please notify us on github.com/mcapi/mcapi-3.0 and create a new issue and copy this complete JSON response and include it in your report.'.
                 ' DO NOT (!) forget to remove any personal or secret information.',
@@ -21,16 +22,17 @@ class InternalException extends \Exception
             null
         );
 
+        $this->debugMessage = $debugMessage;
         $this->response = get_class($response);
         $this->additional = $additional;
     }
 
     /**
-     * @return array|void
+     * @return String
      */
-    public function getCachedTrace()
+    public function getDebugMessage(): String
     {
-        return $this->trace;
+        return $this->debugMessage;
     }
 
     /**

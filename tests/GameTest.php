@@ -2,14 +2,14 @@
 
 use App\Status;
 
-class Test extends TestCase
+class GameTest extends Laravel\Lumen\Testing\TestCase
 {
     /**
      * Tests the game/versions endpoint.
      *
      * @return void
      */
-    public function testVersions()
+    public function testExample()
     {
 
         $response = $this->json('GET', 'game/versions')->response->getOriginalContent();
@@ -20,4 +20,15 @@ class Test extends TestCase
 
     }
 
+    /**
+     * Creates the application.
+     *
+     * Needs to be implemented by subclasses.
+     *
+     * @return \Symfony\Component\HttpKernel\HttpKernelInterface
+     */
+    public function createApplication()
+    {
+        return require __DIR__.'/../bootstrap/app.php';
+    }
 }

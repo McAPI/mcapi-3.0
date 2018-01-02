@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Game;
+namespace App\Responses\Game;
 
-use App\McAPIResponse;
+use App\Responses\McAPIResponse;
 use App\Status;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -16,7 +16,10 @@ class GameVersions extends McAPIResponse
 
     public function __construct()
     {
-        parent::__construct('game.versions');
+        parent::__construct('game.versions', [
+            'latest'    => null,
+            'versions'  => []
+        ]);
     }
 
     /**
