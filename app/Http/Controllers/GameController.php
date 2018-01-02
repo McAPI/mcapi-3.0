@@ -14,11 +14,10 @@ class GameController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function versions(Request $request)
     {
         $game = new GameVersions();
-        $status = $game->fetch($request);
-
+        $game->fetch($request);
         return $game;
     }
 

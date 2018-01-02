@@ -96,10 +96,12 @@ abstract class McAPIResponse extends Resource
     public function toArray($request)
     {
         return [
-            'status'    => $this->status,
-            'message'   => Status::toString($this->status),
-            'data'      => $this->getData(),
-            'cache'    => [
+            'meta'  => [
+                'status'    => $this->status,
+                'message'   => Status::toString($this->status),
+            ],
+            'data'          => $this->getData(),
+            'cache' => [
                 'stored'    => $this->isCached(),
                 'updated'   => $this->getCacheUpdated(),
                 'expires'   => $this->getCacheExpire()

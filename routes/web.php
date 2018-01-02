@@ -9,4 +9,4 @@ $router->get('/', 'IndexController@index');
 /**
  * routes for resource game
  */
-$router->get('/game', 'GameController@index');
+$router->get('/game/versions', 'GameController@versions');
