@@ -73,6 +73,7 @@ $app->singleton(
 
 $app->register(App\Providers\AppServiceProvider::class);
 $app->register(Illuminate\Redis\RedisServiceProvider::class);
+$app->register(\App\Providers\GuzzleProvider::class);
 
 /*
 |--------------------------------------------------------------------------
