@@ -33,7 +33,8 @@ class Handler extends ExceptionHandler
      */
     public function report(Exception $e)
     {
-        parent::report($e);
+        //TODO Own log system or use third-party?
+        //parent::report($e);
     }
 
     /**
@@ -45,6 +46,18 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $e)
     {
+
+        if($e instanceof InternalException) {
+            return response()->json([
+                'exception'     => 'InternalException',
+                'message'       => $e->getMessage(),
+                'code'          => $e->getCode(),
+                'origin'        => $e->getResponse(),
+                'additional'    => $e->getAdditional(),
+                //'trace'         => $e->getTrace() TODO Causes an InvalidArgumentException: json_encode -> recursion detected (?)
+            ]);
+        }
+
         return parent::render($request, $e);
     }
 }
