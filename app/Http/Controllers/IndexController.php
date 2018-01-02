@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Status;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redis;
@@ -17,24 +18,27 @@ class IndexController extends Controller
      */
     public function index()
     {
-        $redisStatus = 'Unknown';
+        $status = Status::OK();
+        $redisStatus = Status::OK();
 
+        //TODO @CLEANUP This deserves some work.
         try {
             Redis::ping();
-            $redisStatus = 'Ok';
+            $redisStatus = Status::OK();
         }catch (ConnectionException $exception) {
-            $redisStatus = 'Error';
+            $redisStatus = Status::ERROR_INTERNAL_SERVER_ERROR();
+            $status = Status::ERROR_INTERNAL_SERVER_ERROR();
         }
 
+        //--- Response
         return response()->json([
-            'status'    => "Ok",
+            'status'    => Status::toString($status),
             'mode'      => App::environment(),
             'cache'     => [
-                'status'    => $redisStatus,
+                'status'    => Status::toString($redisStatus),
             ]
-        ]);
+        ], $status);
 
-        //dd(Redis::info()['Server']);
     }
 
 }
