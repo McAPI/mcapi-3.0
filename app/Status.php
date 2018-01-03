@@ -39,6 +39,11 @@ class Status
         return 400;
     }
 
+    public final static function ERROR_TOO_MANY_REQUESTS() : int
+    {
+        return 429;
+    }
+
     public final static function toString($code) : string
     {
 

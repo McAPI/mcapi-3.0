@@ -4,9 +4,6 @@ namespace App\Responses\Game;
 
 use App\Responses\McAPIResponse;
 use App\Status;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 
 class GameVersions extends McAPIResponse

@@ -28,11 +28,13 @@ class UserInformation extends McAPIResponse
     public function __construct(string $identifier)
     {
         parent::__construct(sprintf("user.information.%s", $identifier), [
+            'premium'   => false,
             'uuid'      => null,
             'username'  => null,
             'history'   => []
             ],
-            (1)
+            (1),
+            true
         );
 
         $this->identifierType = IdentifierTypes::fromIdentifier($identifier);
@@ -84,6 +86,7 @@ class UserInformation extends McAPIResponse
                         $this->fetchProfileEndpoint() &&
                         $this->fetchPropertiesEndpoint()
                     ) {
+                        $this->set('premium', true);
                         $this->save();
                         return $this->setStatus(Status::OK());
                     }
@@ -91,10 +94,11 @@ class UserInformation extends McAPIResponse
 
                 case IdentifierTypes::UUIDv4(): {
                     if(
-                    $this->fetchProfileEndpoint() &&
-                    $this->fetchMinecraftEndpoint() &&
-                    $this->fetchPropertiesEndpoint()
+                        $this->fetchProfileEndpoint() &&
+                        $this->fetchMinecraftEndpoint() &&
+                        $this->fetchPropertiesEndpoint()
                     ) {
+                        $this->set('premium', true);
                         $this->save();
                         return $this->setStatus(Status::OK());
                     }
@@ -111,19 +115,33 @@ class UserInformation extends McAPIResponse
 
             }
 
+            //NOTICE: The Mojang API reports a 429 when we have hit the rate limit.
+            if($this->getStatus() === Status::ERROR_TOO_MANY_REQUESTS()) {
+                $this->setStatus(Status::ERROR_TOO_MANY_REQUESTS());
+                $this->save(Carbon::now()->addMinutes(10));
+            }
+            //NOTICE: If the status is OK & we failed to fetch data then the account probably doesn't exist OR the Mojang API has some problems right now,
+            // either way, we should store it.
+            else if($this->getStatus() === Status::OK()) {
+                $this->setStatus(Status::OK(), "The account either doesn't exist or Mojang's server are struggling right now.");
+                $this->save();
+            }
+
             return $this->getStatus();
         }
 
         //---
         if($this->serveFromCache()) {
-            return $this->setStatus(Status::Ok());
-        }
-
-        if($this->isPermanentlyCached()) {
-            $this->setData(Cache::get($this->getPermanentCacheKey()));
+            return $this->getStatus();
         }
 
         dispatch((new UserInformationProcess($request, $this)));
+
+        if($this->isPermanentlyCached()) {
+            $this->setData(Cache::get($this->getPermanentCacheKey()));
+            return $this->setStatus(Status::OK());
+        }
+
         return $this->setStatus(Status::ACCEPTED());
 
     }
@@ -135,6 +153,9 @@ class UserInformation extends McAPIResponse
      */
     protected function serveFromCache() : bool
     {
+
+        parent::serveFromCache();
+
         //---
         if($this->isCached() && $this->isPermanentlyCached()) {
             $this->setData(Cache::get($this->getCacheKey()));
@@ -193,7 +214,9 @@ class UserInformation extends McAPIResponse
 
         }
 
-        $this->setStatus(Status::OK(), "We couldn't reach the MINECRAFT_ENDPOINT to fetch data.");
+        $this->setStatus($response->getStatusCode() === Status::ERROR_TOO_MANY_REQUESTS()  ? Status::ERROR_TOO_MANY_REQUESTS() : Status::OK(),
+            "We couldn't reach the MINECRAFT_ENDPOINT to fetch data."
+        );
         return false;
 
     }
@@ -216,7 +239,9 @@ class UserInformation extends McAPIResponse
 
         }
 
-        $this->setStatus(Status::OK(), "We couldn't reach the PROFILE_ENDPOINT to fetch data.");
+        $this->setStatus($response->getStatusCode() === Status::ERROR_TOO_MANY_REQUESTS()  ? Status::ERROR_TOO_MANY_REQUESTS() : Status::OK(),
+            "We couldn't reach the PROFILE_ENDPOINT to fetch data."
+        );
         return false;
     }
 
@@ -248,7 +273,9 @@ class UserInformation extends McAPIResponse
 
         }
 
-        $this->setStatus(Status::OK(), "We couldn't reach the PROPERTIES_ENDPOINT to fetch data.");
+        $this->setStatus($response->getStatusCode() === Status::ERROR_TOO_MANY_REQUESTS()  ? Status::ERROR_TOO_MANY_REQUESTS() : Status::OK(),
+            "We couldn't reach the PROPERTIES_ENDPOINT to fetch data."
+        );
         return false;
     }
 

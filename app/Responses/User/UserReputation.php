@@ -62,22 +62,22 @@ class UserReputation extends McAPIResponse
         $this->information = new UserInformation($this->identifier);
         $status = $this->information->fetch();
 
-        if($status === Status::ACCEPTED() && !$this->information->isPermanentlyCached()) {
-            return $this->setStatus($status);
-        } else if($status !== Status::OK() && $status !== Status::ACCEPTED()) {
+        if($status === Status::ACCEPTED()) {
+            return $this->setStatus(Status::ACCEPTED(), 'User is queued.');
+        } else if($status !== Status::OK()) {
             return $this->setStatus(Status::OK(), "Unknown user.");
         }
 
         //---
         if(
-            $this->getMcBouncerCom() &&
+            $this->getMcBouncerCom() ||
             $this->getGlizerDe()
         ) {
             $this->save();
             return $this->setStatus(Status::OK());
         }
 
-        return $this->setStatus(Status::OK(), "Failed to fetch data from all supported ban services.");
+        return $this->setStatus(Status::OK(), "Failed to fetch data from any of the supported ban services.");
 
     }
 
@@ -104,6 +104,7 @@ class UserReputation extends McAPIResponse
             return true;
         }
 
+        $this->setStatus(Status::OK(), "Failed to fetch data from at least one of the supported services.");
         return false;
 
     }
@@ -119,22 +120,29 @@ class UserReputation extends McAPIResponse
 
             $data = json_decode($response->getBody(), true);
 
-            $list = [];
-            foreach ($data as $entry) {
+            if(!(isset($data['error']))) {
 
-                if($entry === '_size') continue;
+                dd($data);
+                $list = [];
+                foreach ($data as $entry) {
 
-                $list[] = [
-                    'name'  => $entry['servername'],
-                    'reason'=> $entry['message']
-                ];
+                    if($entry === '_size') continue;
+
+                    $list[] = [
+                        'name'  => $entry['servername'],
+                        'reason'=> $entry['message']
+                    ];
+                }
+
+                $this->set('services.glizer.servers', $list);
+
+                return true;
+
             }
 
-            $this->set('services.glizer.servers', $list);
-
-            return true;
         }
 
+        $this->setStatus(Status::OK(), "Failed to fetch data from at least one of the supported services.");
         return false;
 
     }

@@ -17,18 +17,22 @@ abstract class McAPIResponse extends Resource
 {
 
     private $cacheKey;
+    private $cacheStatusKey;
     private $cacheTimeInMinutes;
+    private $cacheStatus;
 
     private $status;
     private $statusMessage;
 
     private $data;
 
-    public function __construct(String $cacheKey, array $defaultData, int $cacheTimeInMinutes)
+    public function __construct(String $cacheKey, array $defaultData, int $cacheTimeInMinutes, bool $cacheStatus = false)
     {
         $this->cacheKey = $cacheKey;
         $this->data = $defaultData;
         $this->cacheTimeInMinutes = $cacheTimeInMinutes;
+        $this->cacheStatus = $cacheStatus;
+        $this->cacheStatusKey = sprintf("%s:status", $cacheKey);
     }
 
 
@@ -135,6 +139,14 @@ abstract class McAPIResponse extends Resource
 
         if($this->isCached()) {
             $this->data = Cache::get($this->getCacheKey());
+
+            if($this->cacheStatus === true) {
+
+                $data = explode(':', Cache::get($this->cacheStatusKey), 2);
+                $this->setStatus(intval($data[0]), $data[1]);
+
+            }
+
             return true;
         }
 
@@ -167,6 +179,11 @@ abstract class McAPIResponse extends Resource
         }
 
         Cache::put($this->getCacheKey(), $this->data, $time);
+
+        if($this->cacheStatus === true) {
+            Cache::put($this->cacheStatusKey, sprintf("%d:%s", $this->status, $this->statusMessage), $time);
+        }
+
         return $time;
     }
 
