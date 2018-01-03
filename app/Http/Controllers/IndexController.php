@@ -20,8 +20,6 @@ class IndexController extends Controller
     public function index()
     {
 
-        dd(Queue::connection()->getRedis()->zrange('queues:default:delayed', 0, -1));
-
         $status = Status::OK();
         $redisStatus = Status::OK();
 

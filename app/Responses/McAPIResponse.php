@@ -11,6 +11,7 @@ use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\Resource;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 
 abstract class McAPIResponse extends Resource
 {
@@ -30,31 +31,6 @@ abstract class McAPIResponse extends Resource
         $this->cacheTimeInMinutes = $cacheTimeInMinutes;
     }
 
-    public function get(string $key)
-    {
-
-        $path = explode('.', $key);
-        $current = $this->data;
-
-        foreach ($path as $entry) {
-
-            if(!(isset($entry, $current))) {
-                throw new InternalException("Unknown path to get data.",
-                    ExceptionCodes::INTERNAL_ILLEGAL_ARGUMENT_EXCEPTION(),
-                    $this,
-                    [
-                        'key'   => $key,
-                        'data'  => $this->data
-                    ]
-                );
-            }
-
-            $current = $current[$entry];
-        }
-
-        return $current;
-
-    }
 
     public function getCacheKey() : string
     {
@@ -93,6 +69,32 @@ abstract class McAPIResponse extends Resource
         $this->data = $data;
     }
 
+    public function get(string $key)
+    {
+
+        $path = explode('.', $key);
+        $current = $this->data;
+
+        foreach ($path as $entry) {
+
+            if(!(isset($entry, $current))) {
+                throw new InternalException("Unknown path to get data.",
+                    ExceptionCodes::INTERNAL_ILLEGAL_ARGUMENT_EXCEPTION(),
+                    $this,
+                    [
+                        'key'   => $key,
+                        'data'  => $this->data
+                    ]
+                );
+            }
+
+            $current = $current[$entry];
+        }
+
+        return $current;
+
+    }
+
     /**
      * @param String $key
      * @param $value
@@ -123,6 +125,11 @@ abstract class McAPIResponse extends Resource
 
     }
 
+    /**
+     * Sets the data to the stored in-cache value if one exists
+     *
+     * @return bool true, if the cache contained a value otherwise, false.
+     */
     protected function serveFromCache() : bool
     {
 
@@ -135,6 +142,13 @@ abstract class McAPIResponse extends Resource
 
     }
 
+    /**
+     * Saves the data in the cache.
+     *
+     * @param Carbon|null $time The expiry time.
+     * @return Carbon The expiry time.
+     * @throws InternalException thrown when the provided point in time is in the past.
+     */
     protected function save(Carbon $time = null) : Carbon
     {
 
@@ -159,16 +173,28 @@ abstract class McAPIResponse extends Resource
     public abstract function fetch(array $request, bool $force = false) : int;
 
 
-    public function getCacheExpire(): Carbon
+    /**
+     * Gives the time when the cache expires.
+     *
+     * @return Carbon
+     */
+    public function getCacheExpire() : Carbon
     {
-        // TODO: Implement getCacheExpire() method.
-        return Carbon::now();
+        try {
+            return Carbon::now()->addSeconds(Redis::ttl($this->getCacheKey()));
+        } catch(\Exception $e) {
+            return Carbon::now()->addMinutes($this->cacheTimeInMinutes);
+        }
     }
 
-    public function getCacheUpdated(): Carbon
+    /**
+     * Gives the time when the cache was updated.
+     *
+     * @return Carbon
+     */
+    public function getCacheUpdated() : Carbon
     {
-        // TODO: Implement getCacheUpdated() method.
-        return Carbon::now();
+        return $this->getCacheExpire()->subMinutes($this->cacheTimeInMinutes);
     }
 
     /**
@@ -208,6 +234,11 @@ abstract class McAPIResponse extends Resource
         return response()->json($this->toArray($request), $this->status);
     }
 
+    /**
+     * Gives the Guzzle instance.
+     *
+     * @return Client
+     */
     public static function guzzle() : Client
     {
         return app(Client::class);
