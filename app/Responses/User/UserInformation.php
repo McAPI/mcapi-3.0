@@ -87,8 +87,9 @@ class UserInformation extends McAPIResponse
                         $this->fetchPropertiesEndpoint()
                     ) {
                         $this->set('premium', true);
+                        $this->setStatus(Status::OK());
                         $this->save();
-                        return $this->setStatus(Status::OK());
+                        $this->getStatus();
                     }
                 } break;
 
@@ -99,8 +100,9 @@ class UserInformation extends McAPIResponse
                         $this->fetchPropertiesEndpoint()
                     ) {
                         $this->set('premium', true);
+                        $this->setStatus(Status::OK());
                         $this->save();
-                        return $this->setStatus(Status::OK());
+                        return $this->getStatus();
                     }
                 } break;
 
