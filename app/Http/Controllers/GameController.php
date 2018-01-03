@@ -11,7 +11,7 @@ class GameController extends Controller
     public function versions(Request $request)
     {
         $game = new GameVersions();
-        $game->fetch($request);
+        $game->fetch($request->all());
         return $game;
     }
 

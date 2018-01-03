@@ -2761,16 +2761,16 @@
         },
         {
             "name": "flipbox/lumen-generator",
-            "version": "5.4.4",
+            "version": "5.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/flipboxstudio/lumen-generator.git",
-                "reference": "d5d3acaf4673d5982aaf7ab3cbaee7f76cd08223"
+                "reference": "a6154e5cc8810f22f08d791d1db7b4cbb45112d0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/flipboxstudio/lumen-generator/zipball/d5d3acaf4673d5982aaf7ab3cbaee7f76cd08223",
-                "reference": "d5d3acaf4673d5982aaf7ab3cbaee7f76cd08223",
+                "url": "https://api.github.com/repos/flipboxstudio/lumen-generator/zipball/a6154e5cc8810f22f08d791d1db7b4cbb45112d0",
+                "reference": "a6154e5cc8810f22f08d791d1db7b4cbb45112d0",
                 "shasum": ""
             },
             "require": {
@@ -2796,7 +2796,7 @@
                 }
             ],
             "description": "A Lumen Generator You Are Missing",
-            "time": "2017-10-24 06:17:06"
+            "time": "2018-01-02 08:50:01"
         },
         {
             "name": "fzaninotto/faker",

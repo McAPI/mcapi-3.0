@@ -3,16 +3,18 @@
 namespace App\Jobs;
 
 use App\Responses\User\UserInformation;
-use Illuminate\Support\Facades\Cache;
+use App\Status;
 
 class UserInformationProcess extends Job
 {
 
+    private $request;
     private $information;
 
-    public function __construct(UserInformation $information)
+    public function __construct(array $request, UserInformation $information)
     {
-        //$this->information = $information;
+        $this->request = $request;
+        $this->information = $information;
     }
 
     /**
@@ -22,8 +24,19 @@ class UserInformationProcess extends Job
      */
     public function handle()
     {
-        Cache::permanent($this->information->getPermanentCacheKey(), 'Test');
-        Cache::set($this->information->getCacheKey(), 'Test', 10);
+
+        if($this->information->isCached()) {
+            $this->delete();
+            return;
+        }
+
+        $test = $this->information->fetch($this->request, true);
+
+        if($test !== Status::OK()) {
+            $this->release();
+        } else {
+            $this->delete();
+        }
 
     }
 

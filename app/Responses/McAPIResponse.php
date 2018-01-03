@@ -16,16 +16,18 @@ abstract class McAPIResponse extends Resource
 {
 
     private $cacheKey;
+    private $cacheTimeInMinutes;
 
     private $status;
     private $statusMessage;
 
     private $data;
 
-    public function __construct(String $cacheKey, array $defaultData)
+    public function __construct(String $cacheKey, array $defaultData, int $cacheTimeInMinutes)
     {
         $this->cacheKey = $cacheKey;
         $this->data = $defaultData;
+        $this->cacheTimeInMinutes = $cacheTimeInMinutes;
     }
 
     public function get(string $key)
@@ -57,6 +59,11 @@ abstract class McAPIResponse extends Resource
     public function getCacheKey() : string
     {
         return $this->cacheKey;
+    }
+
+    public function getCacheTimeInMinutes(): int
+    {
+        return $this->cacheTimeInMinutes;
     }
 
     public function getData()
@@ -128,7 +135,29 @@ abstract class McAPIResponse extends Resource
 
     }
 
-    public abstract function fetch(Request $request, bool $force = false) : int;
+    protected function save(Carbon $time = null) : Carbon
+    {
+
+        if($time === null) {
+            $time = Carbon::now()->addMinutes($this->cacheTimeInMinutes);
+        }
+
+        if($time->isPast()) {
+            throw new InternalException("The provided timestamp is in the past.",
+                ExceptionCodes::INTERNAL_ILLEGAL_ARGUMENT_EXCEPTION(),
+                $this,
+                [
+                    'time' => $time
+                ]
+            );
+        }
+
+        Cache::put($this->getCacheKey(), $this->data, $time);
+        return $time;
+    }
+
+    public abstract function fetch(array $request, bool $force = false) : int;
+
 
     public function getCacheExpire(): Carbon
     {

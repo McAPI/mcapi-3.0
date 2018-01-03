@@ -19,17 +19,19 @@ class GameVersions extends McAPIResponse
         parent::__construct('game.versions', [
             'latest'    => null,
             'versions'  => []
-        ]);
+            ],
+            (60 * 24)
+        );
     }
 
     /**
      * This method fetches data.
      *
-     * @param Request $request
+     * @param array $request
      * @param bool $force
      * @return int
      */
-    public function fetch(Request $request, bool $force = false): int
+    public function fetch(array $request, bool $force = false): int
     {
 
         //--- Guzzle client & GET Request Data
@@ -49,7 +51,7 @@ class GameVersions extends McAPIResponse
             $this->set('versions', $extracted['versions']);
 
             //--- Set cache
-            Cache::set($this->getCacheKey(), $this->getData(), Carbon::now()->addMinutes(10));
+            $this->save();
 
             return $this->setStatus(Status::OK());
         }

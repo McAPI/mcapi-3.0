@@ -11,7 +11,7 @@ class UserController extends Controller
     public function information(Request $request, string $identifier)
     {
         $information = new UserInformation($identifier);
-        $information->fetch($request);
+        $information->fetch($request->all());
         return $information;
     }
 

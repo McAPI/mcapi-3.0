@@ -8,7 +8,6 @@ use App\Jobs\UserInformationProcess;
 use App\Responses\McAPIResponse;
 use App\Status;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 
@@ -32,7 +31,9 @@ class UserInformation extends McAPIResponse
             'uuid'      => null,
             'username'  => null,
             'history'   => []
-        ]);
+            ],
+            (1)
+        );
 
         $this->identifierType = IdentifierTypes::fromIdentifier($identifier);
         $this->identifier = $identifier;
@@ -57,11 +58,12 @@ class UserInformation extends McAPIResponse
     /**
      * This method fetches data.
      *
-     * @param Request $request
+     * @param array $request
      * @param bool $force
      * @return int
+     * @throws InternalException
      */
-    public function fetch(Request $request, bool $force = false): int
+    public function fetch(array $request, bool $force = false): int
     {
 
         //---
@@ -69,9 +71,8 @@ class UserInformation extends McAPIResponse
             return $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), "Invalid identifier.");
         }
 
-        //TODO !!!! REMOVE the "!"
-        if(!$force) {
-
+        //---
+        if($force === true) {
 
             switch ($this->identifierType) {
 
@@ -81,6 +82,7 @@ class UserInformation extends McAPIResponse
                         $this->fetchProfileEndpoint() &&
                         $this->fetchPropertiesEndpoint()
                     ) {
+                        $this->save();
                         return $this->setStatus(Status::OK());
                     }
                 } break;
@@ -91,14 +93,18 @@ class UserInformation extends McAPIResponse
                     $this->fetchMinecraftEndpoint() &&
                     $this->fetchPropertiesEndpoint()
                     ) {
+                        $this->save();
                         return $this->setStatus(Status::OK());
                     }
                 } break;
 
-                default: throw new InternalException(sprintf("Missing implementation for %d IdentifierType.", $this->identifierType),
+                default: throw new InternalException("Missing implementation for IdentifierType.",
                     ExceptionCodes::INTERNAL_ILLEGAL_STATE_EXCEPTION(),
                     $this,
-                    []
+                    [
+                        'identifier'        => $this->identifier,
+                        'identifierType'    => $this->identifierType
+                    ]
                 );
 
             }
@@ -111,7 +117,11 @@ class UserInformation extends McAPIResponse
             return $this->setStatus(Status::Ok());
         }
 
-        //TODO !!!! dispatch((new UserInformationProcess($this)));
+        if($this->isPermanentlyCached()) {
+            $this->setData(Cache::get($this->getPermanentCacheKey()));
+        }
+
+        dispatch((new UserInformationProcess($request, $this)));
         return $this->setStatus(Status::ACCEPTED());
 
     }
@@ -147,10 +157,22 @@ class UserInformation extends McAPIResponse
         }
     }
 
+    /**
+     * @OVERRIDE
+     * @param Carbon|null $time
+     * @return Carbon
+     * @throws InternalException
+     */
+    protected function save(Carbon $time = null) : Carbon
+    {
+        $time = parent::save($time);
+        Cache::forever($this->getPermanentCacheKey(), $this->getData());
+        return $time;
+    }
+
     public function isPermanentlyCached() : bool {
         return Cache::has($this->permanentCacheKey);
     }
-
 
     private function fetchMinecraftEndpoint() : bool
     {
@@ -169,7 +191,7 @@ class UserInformation extends McAPIResponse
 
         }
 
-        $this->setStatus(Status::NO_CONTENT(), "We couldn't reach the MINECRAFT_ENDPOINT to fetch data.");
+        $this->setStatus(Status::OK(), "We couldn't reach the MINECRAFT_ENDPOINT to fetch data.");
         return false;
 
     }
@@ -192,13 +214,40 @@ class UserInformation extends McAPIResponse
 
         }
 
-        $this->setStatus(Status::NO_CONTENT(), "We couldn't reach the PROFILE_ENDPOINT to fetch data.");
+        $this->setStatus(Status::OK(), "We couldn't reach the PROFILE_ENDPOINT to fetch data.");
         return false;
     }
 
     private function fetchPropertiesEndpoint() : bool
     {
-        return true;
+        $client = self::guzzle();
+
+        $identifier = ($this->identifierType === IdentifierTypes::UUIDv4() ? $this->identifier : $this->get('uuid'));
+        $response = $client->get(sprintf(self::$_PROPERTIES_ENDPOINT, $identifier));
+
+        if($response->getStatusCode() === Status::OK()) {
+
+            $data = json_decode($response->getBody(), true);
+
+            //--- RAW
+            $this->set('properties.raw', $data);
+
+            //--- Decode
+            $decoded = array();
+            foreach($data['properties'] as $property) {
+                $decoded[] = array(
+                    'name'  => $property['name'],
+                    'value' => json_decode(base64_decode($property['value']), true),
+                );
+            }
+            $this->set('properties.decoded', $decoded);
+
+            return true;
+
+        }
+
+        $this->setStatus(Status::OK(), "We couldn't reach the PROPERTIES_ENDPOINT to fetch data.");
+        return false;
     }
 
 }
