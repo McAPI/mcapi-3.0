@@ -170,7 +170,7 @@ abstract class McAPIResponse extends Resource
         return $time;
     }
 
-    public abstract function fetch(array $request, bool $force = false) : int;
+    public abstract function fetch(array $request = [], bool $force = false) : int;
 
 
     /**

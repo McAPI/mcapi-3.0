@@ -31,7 +31,7 @@ class GameVersions extends McAPIResponse
      * @param bool $force
      * @return int
      */
-    public function fetch(array $request, bool $force = false): int
+    public function fetch(array $request = [], bool $force = false): int
     {
 
         //--- Guzzle client & GET Request Data
@@ -60,19 +60,6 @@ class GameVersions extends McAPIResponse
             return $this->setStatus(Status::ERROR_INTERNAL_SERVER_ERROR());
         }
 
-    }
-
-
-    public function getCacheExpire(): Carbon
-    {
-        // TODO: Implement getCacheExpire() method.
-        return Carbon::now();
-    }
-
-    public function getCacheUpdated(): Carbon
-    {
-        // TODO: Implement getCacheUpdated() method.
-        return Carbon::now();
     }
 
 }

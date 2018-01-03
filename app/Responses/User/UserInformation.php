@@ -39,6 +39,7 @@ class UserInformation extends McAPIResponse
         $this->identifier = $identifier;
 
         //--- Note: The PROFILE_ENDPOINT doesn't allow '-' in the UUID.
+        //:UUIDCheck
         if($this->identifierType === IdentifierTypes::UUIDv4()) {
             $this->identifier = str_replace('-', '', $this->identifier);
         }
@@ -63,10 +64,11 @@ class UserInformation extends McAPIResponse
      * @return int
      * @throws InternalException
      */
-    public function fetch(array $request, bool $force = false): int
+    public function fetch(array $request = [], bool $force = false): int
     {
 
         //---
+        //:UUIDCheck
         if($this->identifierType === IdentifierTypes::INVALID()) {
             return $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), "Invalid identifier.");
         }

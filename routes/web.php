@@ -15,3 +15,4 @@ $router->get('/game/versions', 'GameController@versions');
  * routes for resource user
  */
 $router->get('/user/{identifier}', 'UserController@information');
+$router->get('/user/{identifier}/reputation', 'UserController@reputation');
