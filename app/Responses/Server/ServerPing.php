@@ -138,8 +138,13 @@ class ServerPing extends McAPIResponse
             }
 
         }
+        //
+        else {
+            $this->setStatus(Status::OK(), "Host unreachable.");
+            return false;
+        }
 
-        $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), "Invalid host");
+        $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), "Invalid host.");
         return false;
 
     }
