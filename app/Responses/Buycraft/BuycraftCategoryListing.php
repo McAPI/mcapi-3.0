@@ -3,7 +3,7 @@
 namespace App\Responses;
 
 
-class BuycraftListing extends BuycraftDefaultResponse
+class BuycraftCategoryListing extends BuycraftDefaultResponse
 {
 
     public function __construct(string $secret)

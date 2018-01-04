@@ -28,10 +28,14 @@ class UserInformation extends McAPIResponse
     public function __construct(string $identifier)
     {
         parent::__construct(sprintf("user.information.%s", $identifier), [
-            'premium'   => false,
-            'uuid'      => null,
-            'username'  => null,
-            'history'   => []
+                'premium'       => false,
+                'uuid'          => null,
+                'username'      => null,
+                'history'       => [],
+                'properties'    => [
+                    'decoded'   => [],
+                    'raw'       => []
+                ]
             ],
             (1),
             true
@@ -259,7 +263,7 @@ class UserInformation extends McAPIResponse
             $data = json_decode($response->getBody(), true);
 
             //--- RAW
-            $this->set('properties.raw', $data);
+            $this->set('properties.raw', $data['properties']);
 
             //--- Decode
             $decoded = array();

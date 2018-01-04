@@ -24,7 +24,6 @@ $router->group(['prefix' => 'user'], function () use ($router) {
 /**
  * routes for resource buycraft
  */
-
 $router->group(['prefix' => 'buycraft'], function () use ($router) {
 
     $router->get('/information/{secret}', 'BuycraftController@information');
@@ -43,5 +42,14 @@ $router->group(['prefix' => 'buycraft'], function () use ($router) {
         $router->get('queue/offline/{secret}', 'BuycraftController@commandOfflineQueueListing');
 
     });
+
+});
+
+/**
+ * routes for resource server
+ */
+$router->group(['prefix' => 'server'], function () use ($router) {
+
+    $router->get('/ping/{ip}[/{port}[/{version}]]', 'ServerController@ping');
 
 });

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Responses\BuycraftBanListing;
 use App\Responses\BuycraftCommandQueueListing;
 use App\Responses\BuycraftCouponListing;
-use App\Responses\BuycraftListing;
+use App\Responses\BuycraftCategoryListing;
 use App\Responses\BuycraftInformation;
 use App\Responses\BuycraftPaymentsList;
 use Illuminate\Http\Request;
@@ -36,7 +36,7 @@ class BuycraftController extends Controller
 
     public function categoryListing(Request $request, string $secret)
     {
-        $categoryList = new BuycraftListing($secret);
+        $categoryList = new BuycraftCategoryListing($secret);
         $categoryList->fetch($request->all());
         return $categoryList;
     }
