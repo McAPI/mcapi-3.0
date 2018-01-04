@@ -26,7 +26,7 @@ abstract class McAPIResponse extends Resource
 
     private $data;
 
-    public function __construct(String $cacheKey, array $defaultData, int $cacheTimeInMinutes, bool $cacheStatus = false)
+    public function __construct(String $cacheKey = null, array $defaultData, int $cacheTimeInMinutes, bool $cacheStatus = false)
     {
         $this->cacheKey = $cacheKey;
         $this->data = $defaultData;
@@ -36,16 +36,6 @@ abstract class McAPIResponse extends Resource
     }
 
 
-    public function getCacheKey() : string
-    {
-        return $this->cacheKey;
-    }
-
-    public function getCacheTimeInMinutes(): int
-    {
-        return $this->cacheTimeInMinutes;
-    }
-
     public function getData()
     {
         return $this->data;
@@ -54,11 +44,6 @@ abstract class McAPIResponse extends Resource
     public function getStatus() : int
     {
         return $this->status;
-    }
-
-    public function isCached() : bool
-    {
-        return Cache::has($this->cacheKey);
     }
 
     public function setStatus(int $status, string $statusMessage = null) : int
@@ -129,15 +114,78 @@ abstract class McAPIResponse extends Resource
 
     }
 
+    public function getCacheKey() : string
+    {
+
+        if($this->isCacheDisabled()) {
+            throw new InternalException("The cache is disabled.",
+                ExceptionCodes::INTERNAL_ILLEGAL_CACHE_ACCESS_EXCEPTION(),
+                $this,
+                [
+                    'method'    => 'McAPIResponse#getCacheKey()'
+                ]
+            );
+        }
+
+        return $this->cacheKey;
+    }
+
+    public function getCacheTimeInMinutes() : int
+    {
+        if($this->isCacheDisabled()) {
+            throw new InternalException("The cache is disabled.",
+                ExceptionCodes::INTERNAL_ILLEGAL_CACHE_ACCESS_EXCEPTION(),
+                $this,
+                [
+                    'method'    => 'McAPIResponse#getCacheTimeInMinutes()'
+                ]
+            );
+        }
+
+        return $this->cacheTimeInMinutes;
+    }
+
+    public function isCached() : bool
+    {
+        if($this->isCacheDisabled()) {
+            throw new InternalException("The cache is disabled.",
+                ExceptionCodes::INTERNAL_ILLEGAL_CACHE_ACCESS_EXCEPTION(),
+                $this,
+                [
+                    'method'    => 'McAPIResponse#isCached()'
+                ]
+            );
+        }
+
+        return Cache::has($this->cacheKey);
+    }
+
+    public function isCacheDisabled() : bool
+    {
+        return ($this->cacheKey === null);
+    }
+
+
     /**
      * Sets the data to the stored in-cache value if one exists
-     *
      * @return bool true, if the cache contained a value otherwise, false.
+     * @throws InternalException
      */
     protected function serveFromCache() : bool
     {
 
+        if($this->isCacheDisabled()) {
+            throw new InternalException("The cache is disabled.",
+                ExceptionCodes::INTERNAL_ILLEGAL_CACHE_ACCESS_EXCEPTION(),
+                $this,
+                [
+                    'method'    => 'McAPIResponse#serveFromCache()'
+                ]
+            );
+        }
+
         if($this->isCached()) {
+
             $this->data = Cache::get($this->getCacheKey());
 
             if($this->cacheStatus === true) {
@@ -163,6 +211,16 @@ abstract class McAPIResponse extends Resource
      */
     protected function save(Carbon $time = null) : Carbon
     {
+
+        if($this->isCacheDisabled()) {
+            throw new InternalException("The cache is disabled.",
+                ExceptionCodes::INTERNAL_ILLEGAL_CACHE_ACCESS_EXCEPTION(),
+                $this,
+                [
+                    'method'    => 'McAPIResponse#save()'
+                ]
+            );
+        }
 
         if($time === null) {
             $time = Carbon::now()->addMinutes($this->cacheTimeInMinutes);
@@ -192,11 +250,22 @@ abstract class McAPIResponse extends Resource
 
     /**
      * Gives the time when the cache expires.
-     *
      * @return Carbon
+     * @throws InternalException
      */
     public function getCacheExpire() : Carbon
     {
+
+        if($this->isCacheDisabled()) {
+            throw new InternalException("The cache is disabled.",
+                ExceptionCodes::INTERNAL_ILLEGAL_CACHE_ACCESS_EXCEPTION(),
+                $this,
+                [
+                    'method'    => 'McAPIResponse#getCacheExpire()'
+                ]
+            );
+        }
+
         try {
             return Carbon::now()->addSeconds(Redis::ttl($this->getCacheKey()));
         } catch(\Exception $e) {
@@ -206,11 +275,21 @@ abstract class McAPIResponse extends Resource
 
     /**
      * Gives the time when the cache was updated.
-     *
      * @return Carbon
+     * @throws InternalException
      */
     public function getCacheUpdated() : Carbon
     {
+        if($this->isCacheDisabled()) {
+            throw new InternalException("The cache is disabled.",
+                ExceptionCodes::INTERNAL_ILLEGAL_CACHE_ACCESS_EXCEPTION(),
+                $this,
+                [
+                    'method'    => 'McAPIResponse#getCacheUpdated()'
+                ]
+            );
+        }
+
         return $this->getCacheExpire()->subMinutes($this->cacheTimeInMinutes);
     }
 
@@ -224,18 +303,25 @@ abstract class McAPIResponse extends Resource
      */
     public function toArray($request)
     {
-        return [
-            'meta'  => [
-                'status'    => $this->status,
-                'message'   => $this->statusMessage,
-            ],
-            'data'          => $this->getData(),
-            'cache' => [
-                'stored'    => $this->isCached(),
-                'updated'   => $this->getCacheUpdated(),
-                'expires'   => $this->getCacheExpire()
-            ]
-        ];
+        $data =
+            [
+                'meta'  => [
+                    'status'    => $this->status,
+                    'message'   => $this->statusMessage,
+                ],
+                'data'          => $this->getData()
+            ];
+
+        if(!($this->isCacheDisabled())) {
+            $data['cache'] =
+                [
+                    'stored'    => $this->isCached(),
+                    'updated'   => $this->getCacheUpdated(),
+                    'expires'   => $this->getCacheExpire()
+                ];
+        }
+
+        return $data;
     }
 
     /**

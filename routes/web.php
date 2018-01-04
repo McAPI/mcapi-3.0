@@ -5,14 +5,43 @@
  */
 $router->get('/', 'IndexController@index');
 
-
 /**
  * routes for resource game
  */
-$router->get('/game/versions', 'GameController@versions');
+$router->group(['prefix' => 'game'], function () use ($router) {
+    $router->get('/versions', 'GameController@versions');
+});
 
 /**
  * routes for resource user
  */
-$router->get('/user/{identifier}', 'UserController@information');
-$router->get('/user/{identifier}/reputation', 'UserController@reputation');
+$router->group(['prefix' => 'user'], function () use ($router) {
+    $router->get('/{identifier}', 'UserController@information');
+    $router->get('/{identifier}/reputation', 'UserController@reputation');
+
+});
+
+/**
+ * routes for resource buycraft
+ */
+
+$router->group(['prefix' => 'buycraft'], function () use ($router) {
+
+    $router->get('/information/{secret}', 'BuycraftController@information');
+
+    $router->get('/category/listing/{secret}', 'BuycraftController@categoryListing');
+
+    $router->get('/payment/listing/{secret}', 'BuycraftController@paymentListing');
+
+    $router->get('/ban/listing/{secret}', 'BuycraftController@banListing');
+
+    $router->get('/coupon/listing/{secret}', 'BuycraftController@couponListing');
+
+    $router->group(['prefix' => 'command'], function () use ($router) {
+
+        $router->get('queue/{secret}', 'BuycraftController@commandQueueListing');
+        $router->get('queue/offline/{secret}', 'BuycraftController@commandOfflineQueueListing');
+
+    });
+
+});

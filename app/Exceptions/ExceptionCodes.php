@@ -22,4 +22,10 @@ class ExceptionCodes
         return 1501;
     }
 
+    public static function INTERNAL_ILLEGAL_CACHE_ACCESS_EXCEPTION() : int
+    {
+        return 1502;
+    }
+
+
 }
