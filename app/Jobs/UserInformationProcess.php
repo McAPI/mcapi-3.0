@@ -30,14 +30,8 @@ class UserInformationProcess extends Job
             return;
         }
 
-        $test = $this->information->fetch($this->request, true);
-
-        if($test !== Status::OK()) {
-            $this->release();
-        } else {
-            $this->delete();
-        }
-
+        $this->information->fetch($this->request, true);
+        $this->delete();
     }
 
 }

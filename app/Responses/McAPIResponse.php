@@ -231,7 +231,8 @@ abstract class McAPIResponse extends Resource
                 ExceptionCodes::INTERNAL_ILLEGAL_ARGUMENT_EXCEPTION(),
                 $this,
                 [
-                    'time' => $time
+                    'now'   => Carbon::now(),
+                    'time'  => $time
                 ]
             );
         }

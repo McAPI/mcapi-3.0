@@ -3,11 +3,13 @@
 namespace App\Exceptions;
 
 use Exception;
+use Illuminate\Encryption\Encrypter;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Laravel\Lumen\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -34,7 +36,7 @@ class Handler extends ExceptionHandler
     public function report(Exception $e)
     {
         //TODO Own log system or use third-party?
-        //parent::report($e);
+        parent::report($e);
     }
 
     /**
@@ -55,8 +57,15 @@ class Handler extends ExceptionHandler
                 'code'          => $e->getCode(),
                 'origin'        => $e->getResponse(),
                 'additional'    => $e->getAdditional(),
-                //'trace'         => $e->getTrace() TODO Causes an InvalidArgumentException: json_encode -> recursion detected (?)
-            ]);
+                'trace'         => encrypt(json_encode($e->getTrace()))
+            ], 500);
+        }
+
+        if($e instanceof NotFoundHttpException) {
+            return response()->json([
+                'exception'     => 'NotFoundHttpException',
+                'trace'         => encrypt(json_encode($e->getTrace()))
+            ], 404);
         }
 
         return parent::render($request, $e);

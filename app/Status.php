@@ -29,11 +29,6 @@ class Status
         return 204;
     }
 
-    public final static function ERROR_INTERNAL_SERVER_ERROR() : int
-    {
-        return 500;
-    }
-
     public final static function ERROR_CLIENT_BAD_REQUEST() : int
     {
         return 400;
@@ -49,16 +44,27 @@ class Status
         return 429;
     }
 
+
+    public final static function ERROR_INTERNAL_SERVER_ERROR() : int
+    {
+        return 500;
+    }
+
     public final static function toString($code) : string
     {
 
         switch ($code) {
 
+            //---
             case 200: return "Ok";
             case 202: return "Accepted";
             case 204: return "No Content";
-            case 400: return "Client - Bad Request";
-            case 500: return "Server - Internal Error";
+            //---
+            case 400: return "Bad Request";
+            case 403: return "Forbidden";
+            case 429: return "Too Many Requests";
+            //---
+            case 500: return "Internal Error";
 
             default: return "Internal Error: Unknown Error Code - Please report this on GitHub.";
 

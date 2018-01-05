@@ -16,9 +16,8 @@ $router->group(['prefix' => 'game'], function () use ($router) {
  * routes for resource user
  */
 $router->group(['prefix' => 'user'], function () use ($router) {
-    $router->get('/{identifier}', 'UserController@information');
-    $router->get('/{identifier}/reputation', 'UserController@reputation');
-
+    $router->get('/profile/{identifier}', 'UserController@information');
+    $router->get('/reputation/{identifier}', 'UserController@reputation');
 });
 
 /**

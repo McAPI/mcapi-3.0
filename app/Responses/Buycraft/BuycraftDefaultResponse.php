@@ -76,7 +76,7 @@ class BuycraftDefaultResponse extends McAPIResponse
 
         }
         //--- No Server Error
-        else if($response->getStatusCode() < 500)  {
+        else if($response->getStatusCode() >= 400 && $response->getStatusCode() <= 499)  {
 
             $message = Status::toString($response->getStatusCode());
 

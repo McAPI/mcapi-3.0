@@ -6,6 +6,7 @@ namespace App\Responses;
 use App\Exceptions\ExceptionCodes;
 use App\Exceptions\InternalException;
 use App\Status;
+use Carbon\Carbon;
 
 class ServerPing extends McAPIResponse
 {
@@ -33,7 +34,9 @@ class ServerPing extends McAPIResponse
     public function fetch(array $request = [], bool $force = false): int
     {
 
+        //--- Check if resolveHostAndPort failed
         if($this->getStatus() !== Status::OK()) {
+            $this->save(Carbon::now()->addMinutes(10));
             return $this->getStatus();
         }
 
