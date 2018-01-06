@@ -3,8 +3,7 @@
 namespace App\Responses;
 
 
-use App\Exceptions\ExceptionCodes;
-use App\Exceptions\InternalException;
+use App\CacheTimes;
 use App\Status;
 use Carbon\Carbon;
 
@@ -22,7 +21,7 @@ class ServerPing extends McAPIResponse
                 'host'      => null,
                 'port'      => -1
             ],
-            15
+            CacheTimes::SERVER_PING()
         );
 
         $this->resolveHostAndPort($host, $port);

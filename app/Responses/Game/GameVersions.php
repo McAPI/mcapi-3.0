@@ -2,6 +2,7 @@
 
 namespace App\Responses\Game;
 
+use App\CacheTimes;
 use App\Responses\McAPIResponse;
 use App\Status;
 
@@ -17,7 +18,7 @@ class GameVersions extends McAPIResponse
             'latest'    => null,
             'versions'  => []
             ],
-            (60 * 24)
+            CacheTimes::GAME_VERSIONS()
         );
     }
 

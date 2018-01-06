@@ -2,12 +2,13 @@
 
 namespace App\Responses\Game;
 
+use App\CacheTimes;
 use App\Responses\McAPIResponse;
 use App\Status;
 use GuzzleHttp\Exception\ConnectException;
 
 
-class ServiceStatus extends McAPIResponse
+class GameServiceStatus extends McAPIResponse
 {
 
     private static $_SERVICE_LIST = [
@@ -46,10 +47,10 @@ class ServiceStatus extends McAPIResponse
         //---
         else {
             parent::__construct(sprintf('game.service.%s:status', $this->service), [
-                'service'   => $this->service,
-                'status'    => -1
-            ],
-                0.1
+                    'service'   => $this->service,
+                    'status'    => -1
+                ],
+                CacheTimes::GAME_SERVICE_STATUS()
             );
         }
     }
@@ -81,7 +82,7 @@ class ServiceStatus extends McAPIResponse
 
                 $service = self::$_SERVICE_LIST[$i];
 
-                $current = new ServiceStatus($service);
+                $current = new GameServiceStatus($service);
                 $current->fetch();
                 $currentData[$i]['status'] = $current->get('status');
 

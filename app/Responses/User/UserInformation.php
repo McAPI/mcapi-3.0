@@ -2,6 +2,7 @@
 
 namespace App\Responses\User;
 
+use App\CacheTimes;
 use App\Exceptions\ExceptionCodes;
 use App\Exceptions\InternalException;
 use App\Jobs\UserInformationProcess;
@@ -37,7 +38,7 @@ class UserInformation extends McAPIResponse
                     'raw'       => []
                 ]
             ],
-            (1),
+            CacheTimes::USER_INFORMATION(),
             true
         );
 

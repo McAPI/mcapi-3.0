@@ -3,6 +3,7 @@
 namespace App\Responses\User;
 
 
+use App\CacheTimes;
 use App\Responses\McAPIResponse;
 use App\Status;
 
@@ -23,16 +24,17 @@ class UserReputation extends McAPIResponse
     public function __construct(string $identifier)
     {
         parent::__construct(sprintf("user.reputation.%s", $identifier), [
-            'services'      => [
-                'glizer' => [
-                    'servers'   => []
-                ],
-                'mcbouncer' => [
-                    'servers'   => []
+                'services'      => [
+                    'glizer' => [
+                        'servers'   => []
+                    ],
+                    'mcbouncer' => [
+                        'servers'   => []
+                    ]
                 ]
-            ]
-        ],
-            (24 * 60));
+            ],
+            CacheTimes::USER_REPUTATION()
+        );
 
         $this->identifierType = IdentifierTypes::fromIdentifier($identifier);
         $this->identifier = $identifier;
