@@ -51,6 +51,11 @@ class CacheTimes
         return (60 * 24);
     }
 
+    public static function GAME_VERSION_RUN()
+    {
+        return (60 * 24);
+    }
+
     public static function GAME_SERVICE_STATUS() : int
     {
         return 5;

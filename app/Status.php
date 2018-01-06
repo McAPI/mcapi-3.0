@@ -39,6 +39,11 @@ class Status
         return 403;
     }
 
+    public final static function ERROR_CLIENT_NOT_FOUND() : int
+    {
+        return 404;
+    }
+
     public final static function ERROR_TOO_MANY_REQUESTS() : int
     {
         return 429;
