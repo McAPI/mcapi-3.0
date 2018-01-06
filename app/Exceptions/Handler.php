@@ -3,6 +3,8 @@
 namespace App\Exceptions;
 
 use Exception;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Encryption\Encrypter;
 use Illuminate\Support\Facades\App;
 use Illuminate\Validation\ValidationException;
@@ -50,28 +52,26 @@ class Handler extends ExceptionHandler
     public function render($request, Exception $e)
     {
 
+        $trace = App::environment('local') ? $e->getTrace() : encrypt(json_encode($e->getTrace()));
 
+        if ($e instanceof InternalException) {
+            return response()->json([
+                'exception' => 'InternalException',
+                'message' => $e->getMessage(),
+                'debugMessage' => $e->getDebugMessage(),
+                'code' => $e->getCode(),
+                'origin' => $e->getResponse(),
+                'additional' => $e->getAdditional(),
+                //'trace' => $trace,
+            ], 500);
+        }
 
-            $trace = App::environment('local') ? $e->getTrace() : encrypt(json_encode($e->getTrace()));
-            if ($e instanceof InternalException) {
-                return response()->json([
-                    'exception' => 'InternalException',
-                    'message' => $e->getMessage(),
-                    'debugMessage' => $e->getDebugMessage(),
-                    'code' => $e->getCode(),
-                    'origin' => $e->getResponse(),
-                    'additional' => $e->getAdditional(),
-                    //'trace' => $trace,
-                ], 500);
-            }
-
-            if ($e instanceof NotFoundHttpException) {
-                return response()->json([
-                    'exception' => 'NotFoundHttpException',
-                    'trace' => $trace
-                ], 404);
-            }
-
+        if ($e instanceof NotFoundHttpException) {
+            return response()->json([
+                'exception' => 'NotFoundHttpException',
+                'trace' => $trace
+            ], 404);
+        }
 
         return parent::render($request, $e);
     }

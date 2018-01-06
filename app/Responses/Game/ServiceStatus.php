@@ -4,17 +4,18 @@ namespace App\Responses\Game;
 
 use App\Responses\McAPIResponse;
 use App\Status;
+use GuzzleHttp\Exception\ConnectException;
 
 
 class ServiceStatus extends McAPIResponse
 {
 
     private static $_SERVICE_LIST = [
-        'minecraft.n__',
+        'minecraft.net',
         'skins.minecraft.net',
         'textures.minecraft.net',
         'account.mojang.com',
-        'auth.mojang.com_',
+        'auth.mojang.com',
         'authserver.mojang.com',
         'sessionserver.mojang.com',
         'api.mojang.com'
@@ -48,7 +49,7 @@ class ServiceStatus extends McAPIResponse
                 'service'   => $this->service,
                 'status'    => -1
             ],
-                5
+                0.1
             );
         }
     }
@@ -86,10 +87,8 @@ class ServiceStatus extends McAPIResponse
 
             }
             $this->setData($currentData);
-            $this->setStatus(Status::OK());
-            $this->save();
 
-            return $this->getStatus();
+            return $this->setStatus(Status::OK());
 
         }
         //
@@ -97,11 +96,17 @@ class ServiceStatus extends McAPIResponse
 
             if(in_array($this->service, self::$_SERVICE_LIST)) {
 
-                $status = $client->get($this->service, [
-                    'connect_timeout' => .5
-                ])->getStatusCode();
-                $this->set('status', $status);
-                $this->setStatus(Status::OK());
+                try {
+                    $status = $client->get($this->service, [
+                        'connect_timeout' => .5
+                    ])->getStatusCode();
+                    $this->set('status', $status);
+                    $this->setStatus(Status::OK());
+                } catch (ConnectException $e) {
+                    $this->set('status', -1);
+                    $this->setStatus(Status::OK());
+                }
+
                 $this->save();
                 return $this->getStatus();
             }
