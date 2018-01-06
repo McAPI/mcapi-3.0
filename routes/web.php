@@ -9,7 +9,10 @@ $router->get('/', 'IndexController@index');
  * routes for resource game
  */
 $router->group(['prefix' => 'game'], function () use ($router) {
+
     $router->get('/versions', 'GameController@versions');
+    $router->get('/services/status[/{service}]', 'GameController@servicesStatus');
+
 });
 
 /**

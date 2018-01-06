@@ -26,7 +26,7 @@ abstract class McAPIResponse extends Resource
 
     private $data;
 
-    public function __construct(String $cacheKey = null, array $defaultData, int $cacheTimeInMinutes, bool $cacheStatus = false)
+    public function __construct(String $cacheKey = null, array $defaultData, int $cacheTimeInMinutes = -1, bool $cacheStatus = false)
     {
         $this->cacheKey = $cacheKey;
         $this->data = $defaultData;
@@ -101,7 +101,6 @@ abstract class McAPIResponse extends Resource
         }
 
         $path = explode('.', $key);
-
 
         $data = &$this->data;
         foreach($path as $key) {

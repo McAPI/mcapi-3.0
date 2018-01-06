@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use Exception;
 use Illuminate\Encryption\Encrypter;
+use Illuminate\Support\Facades\App;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -49,23 +50,27 @@ class Handler extends ExceptionHandler
     public function render($request, Exception $e)
     {
 
-        if($e instanceof InternalException) {
-            return response()->json([
-                'exception'     => 'InternalException',
-                'message'       => $e->getMessage(),
-                'debugMessage'  => $e->getDebugMessage(),
-                'code'          => $e->getCode(),
-                'origin'        => $e->getResponse(),
-                'additional'    => $e->getAdditional(),
-                'trace'         => encrypt(json_encode($e->getTrace()))
-            ], 500);
-        }
 
-        if($e instanceof NotFoundHttpException) {
-            return response()->json([
-                'exception'     => 'NotFoundHttpException',
-                'trace'         => encrypt(json_encode($e->getTrace()))
-            ], 404);
+        if(!App::environment('local')) {
+            $trace = encrypt(json_encode($e->getTrace()));
+            if ($e instanceof InternalException) {
+                return response()->json([
+                    'exception' => 'InternalException',
+                    'message' => $e->getMessage(),
+                    'debugMessage' => $e->getDebugMessage(),
+                    'code' => $e->getCode(),
+                    'origin' => $e->getResponse(),
+                    'additional' => $e->getAdditional(),
+                    'trace' => $trace,
+                ], 500);
+            }
+
+            if ($e instanceof NotFoundHttpException) {
+                return response()->json([
+                    'exception' => 'NotFoundHttpException',
+                    'trace' => $trace
+                ], 404);
+            }
         }
 
         return parent::render($request, $e);

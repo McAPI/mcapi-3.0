@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Responses\Game\GameVersions;
+use App\Responses\Game\ServiceStatus;
 use Illuminate\Http\Request;
 
 class GameController extends Controller
@@ -13,6 +14,13 @@ class GameController extends Controller
         $game = new GameVersions();
         $game->fetch($request->all());
         return $game;
+    }
+
+    public function servicesStatus(Request $request, string $service = null)
+    {
+        $status = new ServiceStatus($service);
+        $status->fetch($request->all());
+        return $status;
     }
 
 }

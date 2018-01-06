@@ -129,7 +129,8 @@ class UserInformation extends McAPIResponse
             //NOTICE: If the status is OK & we failed to fetch data then the account probably doesn't exist OR the Mojang API has some problems right now,
             // either way, we should store it.
             else if($this->getStatus() === Status::OK()) {
-                //TODO We sometimes end down here, even though we shouldn't.
+                //TODO We sometimes end down here, even though we shouldn't. - I know why it is happening though, we set the Status::OK even IF we fail.
+                // We need a better seperation, it can not just be TOO_MANY_REQUESTS or OK. This should be some sort of error state.
                 $this->setStatus(Status::OK(), "The account either doesn't exist or Mojang's server are struggling right now.");
                 $this->save();
             }
