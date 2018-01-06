@@ -51,8 +51,8 @@ class Handler extends ExceptionHandler
     {
 
 
-        if(!App::environment('local')) {
-            $trace = encrypt(json_encode($e->getTrace()));
+
+            $trace = App::environment('local') ? $e->getTrace() : encrypt(json_encode($e->getTrace()));
             if ($e instanceof InternalException) {
                 return response()->json([
                     'exception' => 'InternalException',
@@ -61,7 +61,7 @@ class Handler extends ExceptionHandler
                     'code' => $e->getCode(),
                     'origin' => $e->getResponse(),
                     'additional' => $e->getAdditional(),
-                    'trace' => $trace,
+                    //'trace' => $trace,
                 ], 500);
             }
 
@@ -71,7 +71,7 @@ class Handler extends ExceptionHandler
                     'trace' => $trace
                 ], 404);
             }
-        }
+
 
         return parent::render($request, $e);
     }

@@ -10,11 +10,11 @@ class ServiceStatus extends McAPIResponse
 {
 
     private static $_SERVICE_LIST = [
-        'minecraft.net',
+        'minecraft.n__',
         'skins.minecraft.net',
         'textures.minecraft.net',
         'account.mojang.com',
-        'auth.mojang.com',
+        'auth.mojang.com_',
         'authserver.mojang.com',
         'sessionserver.mojang.com',
         'api.mojang.com'
@@ -66,7 +66,9 @@ class ServiceStatus extends McAPIResponse
         //--- Guzzle client & GET Request Data
         $client = self::guzzle();
 
-        if($this->serveFromCache()) {
+        //--- NOTE: We are NOT serving checkAll from cache but rather fetch all statuses individual from their own cache entries,
+        // so we cannot serve the checkAll request from cache.
+        if($this->checkAll === false && $this->serveFromCache()) {
             return $this->setStatus(Status::OK());
         }
 
