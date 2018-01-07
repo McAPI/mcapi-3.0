@@ -49,13 +49,12 @@ class GameServiceStatus extends McAPIResponse
     public function fetch(array $request = [], bool $force = false): int
     {
 
-        if($this->serveFromCache()) {
-            return $this->setStatus(Status::OK());
-        }
-
         if(!(in_array($this->service, self::$_SERVICE_LIST))) {
             return $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), "The service does not exist.");
+        }
 
+        if(!($force) && $this->serveFromCache()) {
+            return $this->setStatus(Status::OK());
         }
 
         try {

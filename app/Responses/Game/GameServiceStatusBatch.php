@@ -45,7 +45,7 @@ class GameServiceStatusBatch extends McAPIResponse
             $current = new GameServiceStatus($service);
 
             //--- Serve from cache
-            if($current->serveFromCache()) {
+            if(!($force) && $current->serveFromCache()) {
                 $currentData[$i]['status'] = $current->get('status');
             }
             //--- or request

@@ -33,11 +33,10 @@ class GameVersions extends McAPIResponse
     {
 
         //--- Guzzle client & GET Request Data
-        $client = self::guzzle();
-        $response = $client->get(static::$_ENDPOINT);
+        $response = self::guzzle()->get(static::$_ENDPOINT);
 
         //---
-        if($this->serveFromCache()) {
+        if(!($force) && $this->serveFromCache()) {
             return $this->setStatus(Status::OK());
         }
         //---

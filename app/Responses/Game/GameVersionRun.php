@@ -39,9 +39,10 @@ class GameVersionRun extends McAPIResponse
         $response = self::guzzle()->get(sprintf(static::$_ENDPOINT, $this->version, $this->version));
 
         //---
-        if($this->serveFromCache()) {
+        if(!($force) && $this->serveFromCache()) {
             return $this->getStatus();
         }
+
         //---
         else if($response->getStatusCode() === Status::OK()) {
             $this->setData(json_decode($response->getBody(), true));

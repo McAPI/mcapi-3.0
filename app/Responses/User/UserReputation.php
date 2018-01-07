@@ -56,7 +56,7 @@ class UserReputation extends McAPIResponse
         }
 
         //---
-        if($this->serveFromCache()) {
+        if(!($force) && $this->serveFromCache()) {
             return $this->setStatus(Status::OK());
         }
 

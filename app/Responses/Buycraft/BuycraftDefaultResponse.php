@@ -43,7 +43,7 @@ class BuycraftDefaultResponse extends McAPIResponse
     {
 
         //---
-        if($this->cache && $this->serveFromCache()) {
+        if(!($force) && $this->cache && $this->serveFromCache()) {
             return $this->setStatus(Status::OK());
         }
 
