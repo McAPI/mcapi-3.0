@@ -27,10 +27,11 @@ class GuzzleProvider extends ServiceProvider
     {
         $this->app->singleton('GuzzleHttp\Client', function () {
             return new Client([
-                'http_errors' => false,
-                'headers'  => [
-'User-Agent' => 'mcapi/3 (+mcapi.de)'
-                ]
+                'http_errors'   => false,
+                'headers'       => [
+                    'User-Agent'    => 'mcapi/3 (+mcapi.de)'
+                ],
+                'timeout'       => 2,
             ]);
         });
     }

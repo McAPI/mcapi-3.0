@@ -6,6 +6,7 @@ use App\CacheTimes;
 use App\Responses\McAPIResponse;
 use App\Status;
 use GuzzleHttp\Exception\ConnectException;
+use function GuzzleHttp\Promise\settle;
 
 
 class GameServiceStatus extends McAPIResponse
@@ -65,9 +66,6 @@ class GameServiceStatus extends McAPIResponse
     public function fetch(array $request = [], bool $force = false): int
     {
 
-        //--- Guzzle client & GET Request Data
-        $client = self::guzzle();
-
         //--- NOTE: We are NOT serving checkAll from cache but rather fetch all statuses individual from their own cache entries,
         // so we cannot serve the checkAll request from cache.
         if($this->checkAll === false && $this->serveFromCache()) {
@@ -78,15 +76,43 @@ class GameServiceStatus extends McAPIResponse
 
             $currentData = $this->getData();
 
+            $promises = [];
+            $promisesIndices = [];
             for($i = 0; $i < count(self::$_SERVICE_LIST); $i++) {
 
                 $service = self::$_SERVICE_LIST[$i];
-
                 $current = new GameServiceStatus($service);
-                $current->fetch();
-                $currentData[$i]['status'] = $current->get('status');
+
+                //--- Serve from cache
+                if($current->isCached() && $current->serveFromCache()) {
+                    $currentData[$i]['status'] = $current->get('status');
+                }
+                //--- or request
+                else {
+                    $promises[$service] = self::guzzle()->getAsync($service);
+                    $promisesIndices[$service] = $i;
+                }
 
             }
+
+            //--- Wait & Process
+            $results = settle($promises)->wait();
+            foreach ($results as $service => $data) {
+
+                //NOTE Only successfully send requests have a 'value' (Response) entry.
+                $status = -1;
+                if(array_key_exists('value', $data)) {
+                    $status = $data['value']->getStatusCode();
+                }
+                $currentData[$promisesIndices[$service]]['status'] = $status;
+
+                //--- Cache
+                $service = new GameServiceStatus($service);
+                $service->set('status', $status);
+                $service->save();
+
+            }
+
             $this->setData($currentData);
 
             return $this->setStatus(Status::OK());
@@ -98,16 +124,12 @@ class GameServiceStatus extends McAPIResponse
             if(in_array($this->service, self::$_SERVICE_LIST)) {
 
                 try {
-                    $status = $client->get($this->service, [
-                        'connect_timeout' => .5
-                    ])->getStatusCode();
-                    $this->set('status', $status);
-                    $this->setStatus(Status::OK());
+                    $this->set('status', self::guzzle()->get($this->service)->getStatusCode());
                 } catch (ConnectException $e) {
                     $this->set('status', -1);
-                    $this->setStatus(Status::OK());
                 }
 
+                $this->setStatus(Status::OK());
                 $this->save();
                 return $this->getStatus();
             }
