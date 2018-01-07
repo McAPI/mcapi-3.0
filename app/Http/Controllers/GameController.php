@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Responses\Game\GameServiceStatusBatch;
 use App\Responses\Game\GameVersionRun;
 use App\Responses\Game\GameVersions;
 use App\Responses\Game\GameServiceStatus;
@@ -24,11 +25,18 @@ class GameController extends Controller
         return $versionRun;
     }
 
-        public function servicesStatus(Request $request, string $service = null)
+    public function servicesStatus(Request $request, string $service = null)
     {
         $status = new GameServiceStatus($service);
         $status->fetch($request->all());
         return $status;
+    }
+
+    public function servicesStatusBatch(Request $request, string $service = null)
+    {
+        $batch = new GameServiceStatusBatch();
+        $batch->fetch($request->all());
+        return $batch;
     }
 
 }

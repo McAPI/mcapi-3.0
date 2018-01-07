@@ -15,7 +15,11 @@ $router->group(['prefix' => 'game'], function () use ($router) {
         $router->get('/run/{version}', 'GameController@versionRun');
     });
 
-    $router->get('/services/status[/{service}]', 'GameController@servicesStatus');
+    $router->group(['prefix' => 'services'], function () use ($router) {
+        $router->get('/status/{service}', 'GameController@servicesStatus');
+        $router->get('/status', 'GameController@servicesStatusBatch');
+    });
+
 
 });
 
