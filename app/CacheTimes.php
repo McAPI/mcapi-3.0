@@ -66,6 +66,11 @@ class CacheTimes
         return 10;
     }
 
+    public static function SERVER_QUERY() : int
+    {
+        return 10;
+    }
+
     public static function USER_INFORMATION() : int
     {
         return 30;

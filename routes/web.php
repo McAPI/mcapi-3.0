@@ -1,5 +1,11 @@
 <?php
 
+$router->get('/test', function () {
+
+
+
+});
+
 /**
  * Routes for resource index
  */
@@ -61,5 +67,6 @@ $router->group(['prefix' => 'buycraft'], function () use ($router) {
 $router->group(['prefix' => 'server'], function () use ($router) {
 
     $router->get('/ping/{ip}[/{port}[/{version}]]', 'ServerController@ping');
+    $router->get('/query/{ip}[/{port}]', 'ServerController@query');
 
 });

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Responses\ServerPing;
+use App\Responses\ServerQuery;
 use Illuminate\Http\Request;
 
 class ServerController extends Controller
@@ -14,6 +15,13 @@ class ServerController extends Controller
         $ping = new ServerPing($ip, $port, $version);
         $ping->fetch($request->all());
         return $ping;
+    }
+
+    public function query(Request $request, string $ip, string $port = '25565')
+    {
+        $query = new ServerQuery($ip, $port);
+        $query->fetch($request->all());
+        return $query;
     }
 
 }
