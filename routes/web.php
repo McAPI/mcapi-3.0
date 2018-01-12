@@ -1,11 +1,5 @@
 <?php
 
-$router->get('/test', function () {
-
-
-
-});
-
 /**
  * Routes for resource index
  */

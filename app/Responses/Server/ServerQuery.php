@@ -105,7 +105,7 @@ class ServerQuery extends ServerResponse
         //--- Full-Stat <- Receive
         $length = @socket_recv($socket, $buffer, 65536, MSG_OOB);
 
-        // NOTE: I haven't calculated it fully but we should receive AT LEAST (1) 18 bytes,
+        // NOTE: I haven't calculated it fully but we should receive AT LEAST (!) 18 bytes,
         // because type (1 Byte), session id (4 Byte), padding (11 Byte), body (2+ Bytes).
         // @TODO Calculate the bare minimum of a healthy response
         if($length < 18) {
