@@ -59,13 +59,13 @@ class ServerQuery extends ServerResponse
         $socket = @socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
 
         if($socket === false) {
-            return $this->setStatus(Status::ERROR_INTERNAL_SERVER_ERROR(), sprintf('Failed to create a socket. (%s)', socket_strerror(socket_last_error())));
+            return $this->returnWithError($socket, Status::ERROR_INTERNAL_SERVER_ERROR(), sprintf('Failed to create a socket. (%s)', socket_strerror(socket_last_error())));
         }
 
         $connect = @socket_connect($socket, $this->getHost(), $this->getPort());
 
         if($connect === false) {
-            return $this->setStatus(Status::ERROR_INTERNAL_SERVER_ERROR(), sprintf('Failed to initiate a connection. (%s)', socket_strerror(socket_last_error())));
+            return $this->returnWithError($socket, Status::ERROR_INTERNAL_SERVER_ERROR(), sprintf('Failed to initiate a connection. (%s)', socket_strerror(socket_last_error())));
         }
 
         // Session ID
@@ -77,8 +77,7 @@ class ServerQuery extends ServerResponse
         $handshakeSend   = @socket_send($socket, $handshakePacket, strlen($handshakePacket), MSG_EOR);
 
         if($handshakeSend === false) {
-            socket_close($socket);
-            return $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), 'Failed to send the handshake packet.');
+            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(), 'Failed to send the handshake packet.');
         }
 
         //--- Handshake <- Receive
@@ -86,8 +85,7 @@ class ServerQuery extends ServerResponse
         $handshakeBytesCount = @socket_recv($socket, $handshakeBuffer, 14, MSG_OOB);
 
         if($handshakeBytesCount < 13) {
-            socket_close($socket);
-            return $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), 'Handshake package response is too short.');
+            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(), 'Handshake package response is too short.');
         }
 
         //--- Handshake Unpack
@@ -98,8 +96,7 @@ class ServerQuery extends ServerResponse
         $fullstatSend   = @socket_send($socket, $fullStatPacket, strlen($fullStatPacket), MSG_EOR);
 
         if($fullstatSend === false) {
-            socket_close($socket);
-            return $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), 'Failed to send the full-stat packet.');
+            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(), 'Failed to send the full-stat packet.');
         }
 
         //--- Full-Stat <- Receive
@@ -109,8 +106,7 @@ class ServerQuery extends ServerResponse
         // because type (1 Byte), session id (4 Byte), padding (11 Byte), body (2+ Bytes).
         // @TODO Calculate the bare minimum of a healthy response
         if($length < 18) {
-            socket_close($socket);
-            return $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), 'Fullstat package response is too short.');
+            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(), 'Fullstat package response is too short.');
         }
 
         //--- Full-Stat Unpack
@@ -185,8 +181,17 @@ class ServerQuery extends ServerResponse
 
         }
 
+        $this->setStatus(Status::OK());
         $this->save();
-        return $this->setStatus(Status::OK());
+        return $this->getStatus();
+    }
+
+    private function returnWithError($socket, Status $status, string $message) : Status
+    {
+        socket_close($socket);
+        $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), 'Fullstat package response is too short.');
+        $this->save(Carbon::now()->addMinutes(2));
+        return $this->getStatus();
     }
 
 }
