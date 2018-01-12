@@ -12,8 +12,8 @@ use Carbon\Carbon;
 class ServerQuery extends ServerResponse
 {
 
-    private static $_MAGIC_1      = 0xFE;
-    private static $_MAGIC_2      = 0xFD;
+    private static $_MAGIC_1   = 0xFE;
+    private static $_MAGIC_2   = 0xFD;
 
     private static $_FULL_STAT = 0x00;
     private static $_HANDSHAKE = 0x09;
@@ -43,7 +43,6 @@ class ServerQuery extends ServerResponse
 
     }
 
-
     public function fetch(array $request = [], bool $force = false): int
     {
 
@@ -56,7 +55,7 @@ class ServerQuery extends ServerResponse
             return $this->getStatus();
         }
 
-        $socket = @socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+        $socket = @socket_create($this->getIpType(), SOCK_DGRAM, SOL_UDP);
 
         if($socket === false) {
             return $this->returnWithError($socket, Status::ERROR_INTERNAL_SERVER_ERROR(), sprintf('Failed to create a socket. (%s)', socket_strerror(socket_last_error())));
@@ -106,7 +105,7 @@ class ServerQuery extends ServerResponse
         // because type (1 Byte), session id (4 Byte), padding (11 Byte), body (2+ Bytes).
         // @TODO Calculate the bare minimum of a healthy response
         if($length < 18) {
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(), 'Fullstat package response is too short.');
+            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(), 'Full-stat package response is too short.');
         }
 
         //--- Full-Stat Unpack
@@ -189,7 +188,7 @@ class ServerQuery extends ServerResponse
     private function returnWithError($socket, Status $status, string $message) : Status
     {
         socket_close($socket);
-        $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), 'Fullstat package response is too short.');
+        $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), 'Full-stat package response is too short.');
         $this->save(Carbon::now()->addMinutes(2));
         return $this->getStatus();
     }

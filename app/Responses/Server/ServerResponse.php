@@ -2,6 +2,8 @@
 namespace App\Responses;
 
 
+use App\Exceptions\ExceptionCodes;
+use App\Exceptions\InternalException;
 use App\Status;
 
 abstract class ServerResponse extends McAPIResponse
@@ -9,6 +11,8 @@ abstract class ServerResponse extends McAPIResponse
 
     private $host;
     private $port;
+
+    private $ipType;
 
     public function __construct(string $host, string $port, $cacheKey = null, array $defaultData, $cacheTimeInMinutes = -1, $cacheStatus = false)
     {
@@ -18,6 +22,22 @@ abstract class ServerResponse extends McAPIResponse
 
         $this->set('host', $this->host);
         $this->set('port', $this->port);
+
+        if(filter_var($this->host, FILTER_VALIDATE_IP, ['flags' => FILTER_FLAG_IPV4])) {
+            $this->ipType = AF_INET;
+        }
+        else if(filter_var($this->host, FILTER_VALIDATE_IP, ['flags' => FILTER_FLAG_IPV6])) {
+            $this->ipType = AF_INET6;
+        } else {
+            throw new InternalException("The host is neither IPv4 nor IPv6.",
+                ExceptionCodes::INTERNAL_ILLEGAL_STATE_EXCEPTION(),
+                $this,
+                [
+                    'host'  => $this->host,
+                    'port'  => $this->port
+                ]
+            );
+        }
     }
 
     public function getHost() : string
@@ -28,6 +48,11 @@ abstract class ServerResponse extends McAPIResponse
     public function getPort() : int
     {
         return $this->port;
+    }
+
+    public function getIpType() : int
+    {
+        return $this->ipType;
     }
 
     private function resolveHostAndPort(string &$host, string &$port) : bool
@@ -56,18 +81,19 @@ abstract class ServerResponse extends McAPIResponse
 
         //--- Check if it is a valid IP address.
         if(
-        filter_var($host, FILTER_VALIDATE_IP, [
-            'flags' => [
-                FILTER_FLAG_IPV4,
-                FILTER_FLAG_IPV6,
-                FILTER_FLAG_NO_PRIV_RANGE,
-                FILTER_FLAG_NO_RES_RANGE
-            ]
-        ])
+            filter_var($host, FILTER_VALIDATE_IP, [
+                'flags' => [
+                    FILTER_FLAG_IPV4,
+                    FILTER_FLAG_IPV6,
+                    FILTER_FLAG_NO_PRIV_RANGE,
+                    FILTER_FLAG_NO_RES_RANGE
+                ]
+            ])
         ) {
             $this->host = $host;
             return true;
         }
+
 
         //---
         $_tmp = gethostbyname($host);
