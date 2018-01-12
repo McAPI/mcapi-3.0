@@ -56,15 +56,27 @@ class ServerQuery extends ServerResponse
         }
 
         $socket = @socket_create($this->getIpType(), SOCK_DGRAM, SOL_UDP);
+        socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 2, 'usec' => 0));
+        socket_set_option($socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 2, 'usec' => 0));
 
         if($socket === false) {
             return $this->returnWithError($socket, Status::ERROR_INTERNAL_SERVER_ERROR(), sprintf('Failed to create a socket. (%s)', socket_strerror(socket_last_error())));
         }
 
-        $connect = @socket_connect($socket, $this->getHost(), $this->getPort());
+        socket_set_nonblock($socket);
+        $connected = false;
+        $now = microtime(true);
+        $timeout = 2;
+        do {
+            socket_clear_error($socket);
+            $connected  = @socket_connect($socket, $this->getHost(), $this->getPort());
+            $error      = socket_last_error($socket);
+            $elapsed    = (microtime(true) - $now) * 1000;
+        } while (($error === SOCKET_EINPROGRESS || $error === SOCKET_EALREADY) && $elapsed < $timeout);
+        socket_set_block($socket);
 
-        if($connect === false) {
-            return $this->returnWithError($socket, Status::ERROR_INTERNAL_SERVER_ERROR(), sprintf('Failed to initiate a connection. (%s)', socket_strerror(socket_last_error())));
+        if($connected === false) {
+            return $this->returnWithError($socket, Status::ERROR_INTERNAL_SERVER_ERROR(), sprintf('Failed to initiate a connection. (%s)', socket_strerror(socket_last_error($socket))));
         }
 
         // Session ID
@@ -181,15 +193,15 @@ class ServerQuery extends ServerResponse
         }
 
         $this->setStatus(Status::OK());
-        $this->save();
+        //$this->save();
         return $this->getStatus();
     }
 
-    private function returnWithError($socket, Status $status, string $message) : Status
+    private function returnWithError($socket, int $status, string $message) : int
     {
         socket_close($socket);
         $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), 'Full-stat package response is too short.');
-        $this->save(Carbon::now()->addMinutes(2));
+        //$this->save(Carbon::now()->addMinutes(2));
         return $this->getStatus();
     }
 

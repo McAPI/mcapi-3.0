@@ -23,20 +23,24 @@ abstract class ServerResponse extends McAPIResponse
         $this->set('host', $this->host);
         $this->set('port', $this->port);
 
-        if(filter_var($this->host, FILTER_VALIDATE_IP, ['flags' => FILTER_FLAG_IPV4])) {
-            $this->ipType = AF_INET;
-        }
-        else if(filter_var($this->host, FILTER_VALIDATE_IP, ['flags' => FILTER_FLAG_IPV6])) {
-            $this->ipType = AF_INET6;
-        } else {
-            throw new InternalException("The host is neither IPv4 nor IPv6.",
-                ExceptionCodes::INTERNAL_ILLEGAL_STATE_EXCEPTION(),
-                $this,
-                [
-                    'host'  => $this->host,
-                    'port'  => $this->port
-                ]
-            );
+        if($this->getStatus() === Status::OK()) {
+
+            //@TODO Check if IP is in private/local range
+
+            if (filter_var($this->host, FILTER_VALIDATE_IP, ['flags' => FILTER_FLAG_IPV4])) {
+                $this->ipType = AF_INET;
+            } else if (filter_var($this->host, FILTER_VALIDATE_IP, ['flags' => FILTER_FLAG_IPV6])) {
+                $this->ipType = AF_INET6;
+            } else {
+                throw new InternalException("The host is neither IPv4 nor IPv6.",
+                    ExceptionCodes::INTERNAL_ILLEGAL_STATE_EXCEPTION(),
+                    $this,
+                    [
+                        'host' => $this->host,
+                        'port' => $this->port
+                    ]
+                );
+            }
         }
     }
 
@@ -63,7 +67,7 @@ abstract class ServerResponse extends McAPIResponse
         //---
         $port = intval($port);
 
-        if($port < 1 || $port > 65535) {
+        if($port < 0 || $port > 65535) {
             $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), "Invalid port.");
             return false;
         }
@@ -80,16 +84,7 @@ abstract class ServerResponse extends McAPIResponse
 
 
         //--- Check if it is a valid IP address.
-        if(
-            filter_var($host, FILTER_VALIDATE_IP, [
-                'flags' => [
-                    FILTER_FLAG_IPV4,
-                    FILTER_FLAG_IPV6,
-                    FILTER_FLAG_NO_PRIV_RANGE,
-                    FILTER_FLAG_NO_RES_RANGE
-                ]
-            ])
-        ) {
+        if(filter_var($host, FILTER_VALIDATE_IP)) {
             $this->host = $host;
             return true;
         }
@@ -97,7 +92,7 @@ abstract class ServerResponse extends McAPIResponse
 
         //---
         $_tmp = gethostbyname($host);
-        $validHostname = (!($host === $_tmp));
+        $validHostname = !($host === $_tmp);
 
         if($validHostname) {
 
@@ -115,7 +110,7 @@ abstract class ServerResponse extends McAPIResponse
             $records = dns_get_record(sprintf('_minecraft._tcp.%s', $host, DNS_SRV));
 
             if(empty($records)) {
-                $this->host = $host;
+                $this->host = $_tmp;
                 return true;
             }
 
@@ -140,20 +135,16 @@ abstract class ServerResponse extends McAPIResponse
 
             $record = $records->first();
             if(isset($record['target'])) {
-                $this->host = $record['target'];
+                $this->host = gethostbyname($record['target']);
 
                 if(isset($record['port'])) {
                     $this->port = intval($record['port']);
                 }
 
                 return true;
+
             }
 
-        }
-        //
-        else {
-            $this->setStatus(Status::OK(), "Host unreachable.");
-            return false;
         }
 
         $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), "Invalid host.");
