@@ -189,9 +189,12 @@ abstract class ServerResponse extends McAPIResponse
 
     }
 
-    protected function returnWithError($socket, int $status, string $message) : int
+    protected function returnWithError($socket, int $status, string $message, $closeSocket = true) : int
     {
-        socket_close($socket);
+        if($closeSocket) {
+            socket_close($socket);
+        }
+
         $this->setStatus($status, $message);
         $this->save(Carbon::now()->addMinutes(2));
         return $this->getStatus();
