@@ -77,7 +77,8 @@ class PEServerPing extends ServerResponse
         //--- Pong Packet <- Receive
         $pongBytesCount = @socket_recv($socket, $response, 16384, MSG_WAITALL);
 
-        if($pongBytesCount < (1 + 8 + 8 + 32 + 32)) {
+        //NOTE: packet (1 Byte) + pingid (8 Bytes) + serverid 8 (8 Bytes) + magic (32 Bytes) + Body (32+ Bytes)
+        if($pongBytesCount < 81) {
             return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(),
                 "The pong packet response is too short.");
         }
