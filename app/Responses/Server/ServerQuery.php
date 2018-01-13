@@ -52,7 +52,7 @@ class ServerQuery extends ServerResponse
 
         //--- NOTE: The Status is != OK when ServerResponse#resolveHostAndPort couldn't resolve the host and port for whatever reason.
         if($this->getStatus() !== Status::OK()) {
-            $this->save(Carbon::now()->addMinutes(10));
+            $this->save(Carbon::now()->addMinutes(10)); //TODO Replace time value
             return $this->getStatus();
         }
 

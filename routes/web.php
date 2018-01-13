@@ -63,4 +63,10 @@ $router->group(['prefix' => 'server'], function () use ($router) {
     $router->get('/ping/{ip}[/{port}[/{version}]]', 'ServerController@ping');
     $router->get('/query/{ip}[/{port}]', 'ServerController@query');
 
+    $router->group(['prefix' => 'pe'], function () use ($router) {
+
+        $router->get('ping/{ip}', 'ServerController@pePing');
+
+    });
+
 });

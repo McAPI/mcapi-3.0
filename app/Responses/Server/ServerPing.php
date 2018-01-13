@@ -36,7 +36,7 @@ class ServerPing extends ServerResponse
     public function fetch(array $request = [], bool $force = false): int
     {
 
-        if(false && $this->serveFromCache()) {
+        if($this->serveFromCache()) {
             return $this->getStatus();
         }
 

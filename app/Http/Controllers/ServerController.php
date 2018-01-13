@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Responses\PEServerPing;
 use App\Responses\ServerPing;
 use App\Responses\ServerQuery;
 use Illuminate\Http\Request;
@@ -22,6 +23,13 @@ class ServerController extends Controller
         $query = new ServerQuery($ip, $port);
         $query->fetch($request->all());
         return $query;
+    }
+
+    public function pePing(Request $request, string $ip)
+    {
+        $ping = new PEServerPing($ip);
+        $ping->fetch($request->all());
+        return $ping;
     }
 
 }
