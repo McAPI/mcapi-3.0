@@ -10,10 +10,9 @@ use Illuminate\Http\Request;
 class ServerController extends Controller
 {
 
-    public function ping(Request $request, string $ip, string $port = '25565', string $version = '1.12.2')
+    public function ping(Request $request, string $ip, string $port = '25565')
     {
-        //TODO Automatically set $version to latest version
-        $ping = new ServerPing($ip, $port, $version);
+        $ping = new ServerPing($ip, $port);
         $ping->fetch($request->all());
         return $ping;
     }

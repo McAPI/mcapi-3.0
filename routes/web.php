@@ -60,7 +60,7 @@ $router->group(['prefix' => 'buycraft'], function () use ($router) {
  */
 $router->group(['prefix' => 'server'], function () use ($router) {
 
-    $router->get('/ping/{ip}[/{port}[/{version}]]', 'ServerController@ping');
+    $router->get('/ping/{ip}[/{port}]', 'ServerController@ping');
     $router->get('/query/{ip}[/{port}]', 'ServerController@query');
 
     $router->group(['prefix' => 'pe'], function () use ($router) {
@@ -68,5 +68,14 @@ $router->group(['prefix' => 'server'], function () use ($router) {
         $router->get('ping/{ip}', 'ServerController@pePing');
 
     });
+
+});
+
+/**
+ * routes for resource image
+ */
+$router->group(['prefix' => 'image'], function () use ($router) {
+
+    $router->get('/favicon/{ip}[/{port}]', 'ImageController@favicon');
 
 });

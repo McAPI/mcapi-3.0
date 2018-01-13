@@ -12,7 +12,7 @@ use Carbon\Carbon;
 class ServerPing extends ServerResponse
 {
 
-    public function __construct(string $host, string $port, string $version)
+    public function __construct(string $host, string $port)
     {
         parent::__construct($host, $port, sprintf('server.ping.%s.%d', $host, $port), [
                 'online'    => false,
