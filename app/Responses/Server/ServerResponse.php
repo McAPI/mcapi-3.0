@@ -5,6 +5,7 @@ namespace App\Responses;
 use App\Exceptions\ExceptionCodes;
 use App\Exceptions\InternalException;
 use App\Status;
+use Carbon\Carbon;
 
 abstract class ServerResponse extends McAPIResponse
 {
@@ -26,7 +27,6 @@ abstract class ServerResponse extends McAPIResponse
         if($this->getStatus() === Status::OK()) {
 
             //@TODO Check if IP is in private/local range
-
             if (filter_var($this->host, FILTER_VALIDATE_IP, ['flags' => FILTER_FLAG_IPV4])) {
                 $this->ipType = AF_INET;
             } else if (filter_var($this->host, FILTER_VALIDATE_IP, ['flags' => FILTER_FLAG_IPV6])) {
@@ -57,6 +57,40 @@ abstract class ServerResponse extends McAPIResponse
     public function getIpType() : int
     {
         return $this->ipType;
+    }
+
+    protected function createSocket(&$socket, int $type, int $protocol)
+    {
+        $socket = @socket_create($this->getIpType(), $type, $protocol);
+        socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 2, 'usec' => 0));
+        socket_set_option($socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 2, 'usec' => 0));
+
+        if($socket === false) {
+            return $this->returnWithError($socket, Status::ERROR_INTERNAL_SERVER_ERROR(), sprintf('Failed to create a socket. (%s)', socket_strerror(socket_last_error())));
+        }
+
+        return Status::OK();
+    }
+
+    protected function connectSocket($socket)
+    {
+        socket_set_nonblock($socket);
+        $connected = false;
+        $now = microtime(true);
+        $timeout = 2000;
+        do {
+            socket_clear_error($socket);
+            $connected  = @socket_connect($socket, $this->getHost(), $this->getPort());
+            $error      = socket_last_error($socket);
+            $elapsed    = (microtime(true) - $now) * 1000;
+        } while (($error === SOCKET_EINPROGRESS || $error === SOCKET_EALREADY) && $elapsed < $timeout);
+        socket_set_block($socket);
+
+        if($connected === false) {
+            return $this->returnWithError($socket, Status::ERROR_INTERNAL_SERVER_ERROR(), sprintf('Failed to initiate a connection. (%s)', socket_strerror(socket_last_error($socket))));
+        }
+
+        return Status::OK();
     }
 
     private function resolveHostAndPort(string &$host, string &$port) : bool
@@ -145,11 +179,22 @@ abstract class ServerResponse extends McAPIResponse
 
             }
 
+            $this->host = $_tmp;
+            return true;
+
         }
 
         $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), "Invalid host.");
         return false;
 
+    }
+
+    protected function returnWithError($socket, int $status, string $message) : int
+    {
+        socket_close($socket);
+        $this->setStatus($status, $message);
+        $this->save(Carbon::now()->addMinutes(2));
+        return $this->getStatus();
     }
 
 }

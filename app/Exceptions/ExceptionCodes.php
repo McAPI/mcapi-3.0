@@ -27,5 +27,4 @@ class ExceptionCodes
         return 1502;
     }
 
-
 }
