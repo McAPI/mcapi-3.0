@@ -48,8 +48,7 @@ class ServerPing extends ServerResponse
         }
 
         //--- Try to fetch data using the latest protocol specifications
-        //$status = $this->fetchLatestProtocol();
-        $status = null;
+        $status = $this->fetchLatestProtocol();
         if($status !== Status::OK()) {
             //--- Try to fetch data using the older protocol specifications
             $status = $this->fetch16Legacy();

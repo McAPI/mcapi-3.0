@@ -9,7 +9,8 @@
         "laravel/lumen-framework": "5.5.*",
         "vlucas/phpdotenv": "~2.2",
         "illuminate/redis": "5.5.*",
-        "guzzlehttp/guzzle": "6.0.*"
+        "guzzlehttp/guzzle": "6.0.*",
+        "pda/pheanstalk": "~3.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
