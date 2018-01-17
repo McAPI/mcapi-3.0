@@ -70,7 +70,7 @@ class PEServerPing extends ServerResponse
         $pingSend       = @socket_write($socket, $packet, strlen($packet));
 
         if($pingSend === false) {
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(),
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
                 "Failed to send the ping packet.");
         }
 
@@ -79,7 +79,7 @@ class PEServerPing extends ServerResponse
 
         //NOTE: packet (1 Byte) + pingid (8 Bytes) + serverid 8 (8 Bytes) + magic (32 Bytes) + Body (32+ Bytes)
         if($pongBytesCount < 81) {
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(),
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
                 "The pong packet response is too short.");
         }
 
@@ -99,7 +99,7 @@ class PEServerPing extends ServerResponse
         $body =  explode(";", $data['body']);
 
         if(count($body) < 8) {
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(),
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
                 "The server didn't respond with enough data.");
         }
 

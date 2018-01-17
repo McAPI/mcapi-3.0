@@ -247,7 +247,6 @@ abstract class McAPIResponse extends Resource
 
     public abstract function fetch(array $request = [], bool $force = false) : int;
 
-
     /**
      * Gives the time when the cache expires.
      * @return Carbon

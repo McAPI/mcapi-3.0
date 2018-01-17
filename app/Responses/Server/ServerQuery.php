@@ -78,7 +78,8 @@ class ServerQuery extends ServerResponse
         $handshakeSend   = @socket_send($socket, $handshakePacket, strlen($handshakePacket), MSG_EOR);
 
         if($handshakeSend === false) {
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(), 'Failed to send the handshake packet.');
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
+                'Failed to send the handshake packet.');
         }
 
         //--- Handshake <- Receive
@@ -86,7 +87,8 @@ class ServerQuery extends ServerResponse
         $handshakeBytesCount = @socket_recv($socket, $handshakeBuffer, 14, MSG_OOB);
 
         if($handshakeBytesCount < 13) {
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(), 'Handshake package response is too short.');
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
+                'Handshake package response is too short.');
         }
 
         //--- Handshake Unpack
@@ -97,7 +99,8 @@ class ServerQuery extends ServerResponse
         $fullstatSend   = @socket_send($socket, $fullStatPacket, strlen($fullStatPacket), MSG_EOR);
 
         if($fullstatSend === false) {
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(), 'Failed to send the full-stat packet.');
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
+                'Failed to send the full-stat packet.');
         }
 
         //--- Full-Stat <- Receive
@@ -107,7 +110,8 @@ class ServerQuery extends ServerResponse
         // because type (1 Byte), session id (4 Byte), padding (11 Byte), body (2+ Bytes).
         // @TODO Calculate the bare minimum of a healthy response
         if($length < 18) {
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(), 'Full-stat package response is too short.');
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
+                'Full-stat package response is too short.');
         }
 
         //--- Full-Stat Unpack
@@ -183,7 +187,7 @@ class ServerQuery extends ServerResponse
         }
 
         $this->setStatus(Status::OK());
-        //$this->save();
+        $this->save();
         return $this->getStatus();
     }
 

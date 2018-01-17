@@ -34,6 +34,9 @@ class ServerPing extends ServerResponse
 
     public function fetch(array $request = [], bool $force = false): int
     {
+
+        $force = true;
+
         if($force === false && $this->serveFromCache()) {
             return $this->getStatus();
         }
@@ -45,11 +48,15 @@ class ServerPing extends ServerResponse
         }
 
         //--- Try to fetch data using the latest protocol specifications
-        $status = $this->fetchLatestProtocol();
-
+        //$status = $this->fetchLatestProtocol();
+        $status = null;
         if($status !== Status::OK()) {
             //--- Try to fetch data using the older protocol specifications
             $status = $this->fetch16Legacy();
+
+            //if($status !== Status::OK()) {
+            //    $status = $this->fetch1415Legacy();
+            //}
         }
 
         return $status;
@@ -73,14 +80,15 @@ class ServerPing extends ServerResponse
 
         //--- Handshake Packet -> Send
         $handshakePacket = pack('c3', 0x00, 0x154, strlen($this->getHost()))
-            . $this->getHost()
-            . pack('nc', $this->getPort(), 0x01);
+                           . $this->getHost()
+                           . pack('nc', $this->getPort(), 0x01);
         $handshakePacket = pack('c', strlen($handshakePacket)) . $handshakePacket;
 
         $handshakeSend = @socket_write($socket, $handshakePacket, strlen($handshakePacket));
 
         if($handshakeSend === false) {
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(), 'Failed to send the handshake packet.');
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
+                'Failed to send the handshake packet.');
         }
 
         //--- Status Packet -> Send
@@ -88,7 +96,8 @@ class ServerPing extends ServerResponse
         $statusSend     = @socket_write($socket, $statusPacket, strlen($statusPacket));
 
         if($statusSend === false) {
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(), 'Failed to send the status packet.');
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
+                'Failed to send the status packet.');
         }
 
         //--- Status Packet <- Response
@@ -98,19 +107,20 @@ class ServerPing extends ServerResponse
         }
 
         if($length < 10) {
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(), "The packet is too short.");
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
+                "The packet is too short.");
         }
 
         //--- Check the packet type
         $packetTypeReceive = @socket_recv($socket, $packetType, 1, MSG_WAITALL);
         if($packetTypeReceive === false){
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(),
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
                 "The server didn't respond with the packet type.");
         }
 
-
         if($packetType !== pack('c', 0x00)) {
-            return $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), "Received an unexpected type of packet from the server.");
+            return $this->setStatus(Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
+                "Received an unexpected type of packet from the server.");
         }
 
         //--- Receive and process payload
@@ -118,13 +128,13 @@ class ServerPing extends ServerResponse
         $bodyReceive = @socket_recv($socket, $body, $length, MSG_WAITALL);
 
         if($bodyReceive === false) {
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(),
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
                 "The Server didn't respond with the expected payload.");
         }
 
         $data = json_decode($body, true);
         if($data === null || !(is_array($data))) {
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(),
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
                 "The server responded with invalid JSON.");
         }
 
@@ -138,15 +148,9 @@ class ServerPing extends ServerResponse
         }
 
         if($protocol === -1) {
-            throw new InternalException("Failed to identify protocol version.",
-                ExceptionCodes::INTERNAL_ILLEGAL_STATE_EXCEPTION(),
-                $this,
-                [
-                    'data' => $data
-                ]
-            );
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
+                "The server responded with invalid JSON.");
         }
-
 
         if($protocol >= 0) {
             $this->set('online', true);
@@ -215,26 +219,29 @@ class ServerPing extends ServerResponse
         $handshakeSend          = @socket_write($socket, $legacyHandshakePacket, strlen($legacyHandshakePacket));
 
         if($handshakeSend === false) {
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(), 'Failed to send the legacy handshake packet.');
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
+                'Failed to send the legacy handshake packet.');
         }
 
         $headBytesCount = @socket_recv($socket, $headBuffer, 3, MSG_WAITALL);
 
         if($headBytesCount !== 3) {
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(), 'The head of the packet is too short.');
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
+                'The head of the packet is too short.');
         }
 
         $head = unpack('Cidentifier/nlength', $headBuffer);
         $trashByteCount = @socket_recv($socket, $buffer, 12, MSG_WAITALL);
 
         if($trashByteCount !== 12) {
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(), 'The trash of the packet is too short.');
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
+                'The trash of the packet is too short.');
         }
-
 
         $bodyByteCount = @socket_recv($socket, $buffer, ($head['length'] * 4), MSG_WAITALL);
         if($bodyByteCount < $head['length']) {
-            return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(), 'The body of the packet is too short.');
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
+                'The body of the packet is too short.');
         }
 
         //--- Utility
@@ -250,10 +257,77 @@ class ServerPing extends ServerResponse
         $this->set('players.online', intval($clean($body[2])));
         $this->set('players.max', intval($clean($body[3])));
 
+        socket_close($socket);
+
         $this->setStatus(Status::OK());
         $this->save();
         return $this->getStatus();
 
+    }
+
+    private function fetch1415Legacy()
+    {
+        //--- Create
+        $socket = null;
+        $created = $this->createSocket($socket, SOCK_STREAM, SOL_TCP);
+        if($created !== Status::OK()) {
+            return $this->getStatus();
+        }
+
+        //--- Connect
+        $connected = $this->connectSocket($socket);
+        if($connected !== Status::OK()) {
+            return $this->getStatus();
+        }
+
+        //--- Handshake Packet (Legacy) -> Send
+        $legacyHandshakePacket  = pack('c', 0xFE);
+        $handshakeSend          = @socket_write($socket, $legacyHandshakePacket, strlen($legacyHandshakePacket));
+
+        if($handshakeSend === false) {
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
+                'Failed to send the legacy handshake (1.4-1.5) packet.');
+        }
+
+        $headBytesCount = @socket_recv($socket, $headBuffer, 4096, MSG_PEEK);
+
+        if($headBytesCount !== 3) {
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
+                'The head of the packet is too short.');
+        }
+
+
+        $bodyByteCount = @socket_recv($socket, $buffer, 4096, MSG_WAITALL);
+        dd($bodyByteCount);
+
+        //--- Utility
+        $clean = function ($value) {
+            return utf8_encode(str_replace("\x00", "", $value));
+        };
+
+        $headBytesCount = @socket_recv($socket, $headBuffer, 3, MSG_WAITALL);
+
+        if($headBytesCount !== 3) {
+            return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
+                'The head of the packet is too short.');
+        }
+
+        dd(unpack('c2a/cb/a*', $buffer), $clean($buffer));
+
+
+        $body = explode("\x00\x00", $buffer);
+
+        $this->set('online', true);
+        $this->set('software', sprintf("Unknown %s", $clean($body[0])));
+        $this->set('motd', $clean($body[1]));
+        $this->set('players.online', intval($clean($body[2])));
+        $this->set('players.max', intval($clean($body[3])));
+
+        socket_close($socket);
+
+        $this->setStatus(Status::OK());
+        $this->save();
+        return $this->getStatus();
     }
 
     private function socketReadVarInt($socket, &$length, $closeSocket = true) : int
@@ -265,7 +339,7 @@ class ServerPing extends ServerResponse
             $success = @socket_recv($socket, $value, 1, MSG_WAITALL);
 
             if($success === false) {
-                return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(),
+                return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
                     "Failed to read varint because the server didn't respond.",
                     $closeSocket);
             }
@@ -273,7 +347,7 @@ class ServerPing extends ServerResponse
             $value = ord($value);
             $length |= ($value & 127) << ($readBytes++ * 7);
             if ($readBytes > 5) {
-                return $this->returnWithError($socket, Status::ERROR_CLIENT_BAD_REQUEST(),
+                return $this->returnWithError($socket, Status::ERROR_INTERAL_SERVICE_UNAVAILABLE(),
                     'Failed to read varint because the varint is longer than 5 bytes.',
                     $closeSocket);
             }

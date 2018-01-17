@@ -59,6 +59,14 @@ abstract class ServerResponse extends McAPIResponse
         return $this->ipType;
     }
 
+    /**
+     * Creates a socket.
+     *
+     * @param mixed $socket The variable to bind the socket to.
+     * @param int $type http://php.net/manual/en/function.socket-create.php
+     * @param int $protocol http://php.net/manual/en/function.socket-create.php
+     * @return int A status code. 200 if it was successful, otherwise 500.
+     */
     protected function createSocket(&$socket, int $type, int $protocol)
     {
         $socket = @socket_create($this->getIpType(), $type, $protocol);
@@ -72,6 +80,12 @@ abstract class ServerResponse extends McAPIResponse
         return Status::OK();
     }
 
+    /**
+     * Connects a socket to the IP and Host stored in the object.
+     *
+     * @param resource $socket The socket to connect.
+     * @return int A status code. 200 if it was successful, otherwise 500.
+     */
     protected function connectSocket($socket)
     {
         socket_set_nonblock($socket);
@@ -93,6 +107,13 @@ abstract class ServerResponse extends McAPIResponse
         return Status::OK();
     }
 
+    /**
+     * Validates and resolves the host and port.
+     *
+     * @param string $host The host to validate and resolve.
+     * @param string $port The port to validate.
+     * @return bool true, if it was successful, otherwise false.
+     */
     private function resolveHostAndPort(string &$host, string &$port) : bool
     {
 
@@ -189,10 +210,19 @@ abstract class ServerResponse extends McAPIResponse
 
     }
 
+    /**
+     * This method sets the status, saves the current state to the cache and can close the socket.
+     *
+     * @param mixed $socket The socket used to establish a connection.
+     * @param int $status The status code.
+     * @param string $message The status message.
+     * @param bool $closeSocket If it should try to close the socket.
+     * @return int The status code.
+     */
     protected function returnWithError($socket, int $status, string $message, $closeSocket = true) : int
     {
         if($closeSocket) {
-            socket_close($socket);
+            @socket_close($socket);
         }
 
         $this->setStatus($status, $message);

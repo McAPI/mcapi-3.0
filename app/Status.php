@@ -55,6 +55,11 @@ class Status
         return 500;
     }
 
+    public final static function ERROR_INTERAL_SERVICE_UNAVAILABLE() : int
+    {
+        return 503;
+    }
+
     public final static function toString($code) : string
     {
 
@@ -67,9 +72,11 @@ class Status
             //---
             case 400: return "Bad Request";
             case 403: return "Forbidden";
+            case 404: return "Not Found";
             case 429: return "Too Many Requests";
             //---
             case 500: return "Internal Error";
+            case 503: return "Service Unavailable";
 
             default: return "Internal Error: Unknown Error Code - Please report this on GitHub.";
 
