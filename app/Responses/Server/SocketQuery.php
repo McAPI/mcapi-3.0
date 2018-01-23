@@ -9,7 +9,7 @@ use App\Exceptions\InternalException;
 use App\Status;
 use Carbon\Carbon;
 
-class ServerQuery extends ServerResponse
+class SocketQuery extends SocketResponse
 {
 
     private static $_MAGIC_1   = 0xFE;

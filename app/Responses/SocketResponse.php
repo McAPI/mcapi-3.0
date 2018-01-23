@@ -7,7 +7,7 @@ use App\Exceptions\InternalException;
 use App\Status;
 use Carbon\Carbon;
 
-abstract class ServerResponse extends McAPIResponse
+abstract class SocketResponse extends McAPIResponse
 {
 
     private $host;
@@ -226,7 +226,11 @@ abstract class ServerResponse extends McAPIResponse
         }
 
         $this->setStatus($status, $message);
-        $this->save(Carbon::now()->addMinutes(2));
+
+        if($this->isCacheEnabled()) {
+            $this->save(Carbon::now()->addMinutes(2));
+        }
+
         return $this->getStatus();
     }
 

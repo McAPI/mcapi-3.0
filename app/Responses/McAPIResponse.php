@@ -164,6 +164,11 @@ abstract class McAPIResponse extends Resource
         return ($this->cacheKey === null);
     }
 
+    public function isCacheEnabled() : bool
+    {
+        return !($this->isCacheDisabled());
+    }
+
 
     /**
      * Sets the data to the stored in-cache value if one exists

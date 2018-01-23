@@ -11,6 +11,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Laravel\Lumen\Exceptions\Handler as ExceptionHandler;
+use Predis\Connection\ConnectionException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -71,6 +72,18 @@ class Handler extends ExceptionHandler
                 'exception' => 'NotFoundHttpException',
                 'trace' => $trace
             ], 404);
+        }
+
+        if($e instanceof ConnectionException) {
+            return response()->json([
+                'exception' => 'CacheNotReachable'
+            ], 500);
+        }
+
+        if($e instanceof \Pheanstalk\Exception\ConnectionException) {
+            return response()->json([
+                'exception' => 'QueueNotReachable'
+            ], 500);
         }
 
         return parent::render($request, $e);

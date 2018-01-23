@@ -24,7 +24,7 @@ class Favicon extends McAPIResponse
     public function fetch(array $request = [], bool $force = false): int
     {
 
-        $ping = new ServerPing($this->ip, $this->port);
+        $ping = new SocketPing($this->ip, $this->port);
         $ping->fetch([]);
 
         $favicon = $ping->get('favicon');

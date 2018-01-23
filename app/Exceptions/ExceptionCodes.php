@@ -27,4 +27,9 @@ class ExceptionCodes
         return 1502;
     }
 
+    public static function INTERNAL_SERVER_IN_ILLEGAL_STATE_EXCEPTION() : int
+    {
+        return 1503;
+    }
+
 }

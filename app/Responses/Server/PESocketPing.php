@@ -8,7 +8,7 @@ use App\Exceptions\InternalException;
 use App\Status;
 use Carbon\Carbon;
 
-class PEServerPing extends ServerResponse
+class PESocketPing extends SocketResponse
 {
 
     private static $_PING_PACKET = 0x1;

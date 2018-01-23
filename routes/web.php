@@ -79,3 +79,12 @@ $router->group(['prefix' => 'image'], function () use ($router) {
     $router->get('/favicon/{ip}[/{port}]', 'ImageController@favicon');
 
 });
+
+/**
+ * routes for voting
+ */
+$router->group(['prefix' => 'voting'], function () use ($router) {
+
+    $router->get('/votifier/{ip}/{port}/{identifier}/{token}/{publicKey}', 'VotingController@votifier');
+
+});
