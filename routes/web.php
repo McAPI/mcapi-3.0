@@ -44,12 +44,26 @@ $router->group(['prefix' => 'buycraft'], function () use ($router) {
 
     $router->get('/ban/listing/{secret}', 'BuycraftController@banListing');
 
-    $router->get('/coupon/listing/{secret}', 'BuycraftController@couponListing');
+    $router->group(['prefix' => 'giftcard'], function () use ($router) {
+
+        $router->get('listing/{secret}', 'BuycraftController@giftcardListing');
+        $router->get('listing/{secret}/{id}', 'BuyCraftController@giftcardShowCard');
+
+    });
+
+
+    $router->group(['prefix' => 'coupon'], function () use ($router) {
+
+        $router->get('listing/{secret}', 'BuycraftController@couponListing');
+        $router->get('listing/{secret}/{id}', 'BuyCraftController@couponShowCoupon');
+
+    });
 
     $router->group(['prefix' => 'command'], function () use ($router) {
 
         $router->get('queue/{secret}', 'BuycraftController@commandQueueListing');
         $router->get('queue/offline/{secret}', 'BuycraftController@commandOfflineQueueListing');
+        $router->get('queue/online/{secret}/{playerid}', 'BuycraftController@commandOnlineQueueListing');
 
     });
 
@@ -85,6 +99,6 @@ $router->group(['prefix' => 'image'], function () use ($router) {
  */
 $router->group(['prefix' => 'voting'], function () use ($router) {
 
-    $router->get('/votifier/{ip}/{port}/{identifier}/{token}/{publicKey}', 'VotingController@votifier');
+    $router->get('/nu/{ip}/{port}/{identifier}/{token}/{publicKey}', 'VotingController@nuVotifier');
 
 });

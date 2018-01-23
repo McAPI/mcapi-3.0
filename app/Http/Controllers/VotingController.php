@@ -10,12 +10,11 @@ use Illuminate\Http\Request;
 class VotingController extends Controller
 {
 
-    public function votifier(Request $request, string $ip, string $port, string $identifier, string $token, string $publicKey)
+    public function nuVotifier(Request $request, string $ip, string $port, string $identifier, string $token, string $publicKey)
     {
         $votifier = new NuVotifier($ip, $port, $identifier, $token, $publicKey, $request->ip());
         $votifier->fetch();
         return $votifier;
     }
-
 
 }
