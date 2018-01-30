@@ -25,12 +25,10 @@ class UserInformationProcess extends Job
     public function handle()
     {
 
-        if($this->information->isCached()) {
-            $this->delete();
-            return;
+        if(!($this->information->isCached())) {
+            $this->information->fetch($this->request, true);
         }
 
-        $this->information->fetch($this->request, true);
         $this->delete();
     }
 

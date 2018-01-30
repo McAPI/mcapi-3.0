@@ -5,6 +5,7 @@ namespace App\Responses;
 
 use App\Exceptions\ExceptionCodes;
 use App\Exceptions\InternalException;
+use App\McAPICache;
 use App\Status;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
@@ -156,7 +157,7 @@ abstract class McAPIResponse extends Resource
             );
         }
 
-        return Cache::has($this->cacheKey);
+        return McAPICache::has($this->cacheKey);
     }
 
     public function isCacheDisabled() : bool
@@ -190,11 +191,11 @@ abstract class McAPIResponse extends Resource
 
         if($this->isCached()) {
 
-            $this->data = Cache::get($this->getCacheKey());
+            $this->data = McAPICache::get($this->getCacheKey());
 
             if($this->cacheStatus === true) {
 
-                $data = explode(':', Cache::get($this->cacheStatusKey), 2);
+                $data = explode(':', McAPICache::get($this->cacheStatusKey), 2);
                 $this->setStatus(intval($data[0]), $data[1]);
 
             }
@@ -241,10 +242,10 @@ abstract class McAPIResponse extends Resource
             );
         }
 
-        Cache::put($this->getCacheKey(), $this->data, $time);
+        McAPICache::put($this->getCacheKey(), $this->data, $time);
 
         if($this->cacheStatus === true) {
-            Cache::put($this->cacheStatusKey, sprintf("%d:%s", $this->status, $this->statusMessage), $time);
+            McAPICache::put($this->cacheStatusKey, sprintf("%d:%s", $this->status, $this->statusMessage), $time);
         }
 
         return $time;

@@ -6,11 +6,11 @@ use App\CacheTimes;
 use App\Exceptions\ExceptionCodes;
 use App\Exceptions\InternalException;
 use App\Jobs\UserInformationProcess;
+use App\McAPICache;
+use App\McAPIQueue;
 use App\Responses\McAPIResponse;
 use App\Status;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
-
 
 class UserInformation extends McAPIResponse
 {
@@ -144,11 +144,10 @@ class UserInformation extends McAPIResponse
             return $this->getStatus();
         }
 
-        dispatch((new UserInformationProcess($request, $this)));
+        $success = McAPIQueue::dispatch((new UserInformationProcess($request, $this)));
 
-        if($this->isPermanentlyCached()) {
-            $this->setData(Cache::get($this->getPermanentCacheKey()));
-            return $this->setStatus(Status::OK());
+        if($success === false) {
+            return $this->setStatus(Status::ERROR_INTERNAL_SERVER_ERROR(), "The queue is currently is not available.");
         }
 
         return $this->setStatus(Status::ACCEPTED());
@@ -167,12 +166,12 @@ class UserInformation extends McAPIResponse
 
         //---
         if($this->isCached() && $this->isPermanentlyCached()) {
-            $this->setData(Cache::get($this->getCacheKey()));
+            $this->setData(McAPICache::get($this->getCacheKey()));
             return true;
         }
         //---
         else if($this->isPermanentlyCached() && !($this->isCached())) {
-            $this->setData(Cache::get($this->permanentCacheKey));
+            $this->setData(McAPICache::get($this->permanentCacheKey));
             return false;
         }
         //---
@@ -198,12 +197,12 @@ class UserInformation extends McAPIResponse
     protected function save(Carbon $time = null) : Carbon
     {
         $time = parent::save($time);
-        Cache::forever($this->getPermanentCacheKey(), $this->getData());
+        McAPICache::forver($this->getPermanentCacheKey(), $this->getData());
         return $time;
     }
 
     public function isPermanentlyCached() : bool {
-        return Cache::has($this->permanentCacheKey);
+        return McAPICache::has($this->permanentCacheKey);
     }
 
     private function fetchMinecraftEndpoint() : bool

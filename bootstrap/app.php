@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\McAPICache;
+
 require_once __DIR__.'/../vendor/autoload.php';
 
 try {
@@ -75,6 +77,7 @@ $app->singleton(
 $app->register(App\Providers\AppServiceProvider::class);
 $app->register(Illuminate\Redis\RedisServiceProvider::class);
 $app->register(\App\Providers\GuzzleProvider::class);
+$app->register(\App\Providers\McAPIServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------

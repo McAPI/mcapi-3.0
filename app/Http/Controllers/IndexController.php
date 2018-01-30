@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\McAPICache;
+use App\McAPIQueue;
 use App\Status;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Redis;
 
 class IndexController extends Controller
 {
@@ -19,25 +19,8 @@ class IndexController extends Controller
     {
 
         $status = Status::OK();
-        $cacheStatus = Status::OK();
-        $queueStatus = Status::OK();
-
-        //TODO @CLEANUP This deserves some work.
-        try {
-            Redis::ping();
-            $cacheStatus = Status::OK();
-        }catch (\Predis\Connection\ConnectionException $exception) {
-            $cacheStatus = Status::ERROR_INTERNAL_SERVER_ERROR();
-            $status = Status::ERROR_INTERNAL_SERVER_ERROR();
-        }
-
-        try {
-            Queue::connection()->getPheanstalk()->stats();
-            $queueStatus = Status::OK();
-        }catch (\Pheanstalk\Exception\ConnectionException $exception) {
-            $queueStatus = Status::ERROR_INTERNAL_SERVER_ERROR();
-            $status = Status::ERROR_INTERNAL_SERVER_ERROR();
-        }
+        $cacheStatus = (McAPICache::isAvailable() ? Status::OK() : Status::ERROR_INTERAL_SERVICE_UNAVAILABLE());
+        $queueStatus = (McAPIQueue::isAvailable() ? Status::OK() : Status::ERROR_INTERAL_SERVICE_UNAVAILABLE());
 
         //--- Response
         return response()->json([
