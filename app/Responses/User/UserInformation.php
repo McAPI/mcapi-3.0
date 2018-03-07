@@ -28,6 +28,7 @@ class UserInformation extends McAPIResponse
 
     public function __construct(string $identifier)
     {
+
         parent::__construct(sprintf("user.information.%s", $identifier), [
                 'premium'       => false,
                 'uuid'          => null,
