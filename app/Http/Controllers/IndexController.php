@@ -10,12 +10,15 @@ use Illuminate\Support\Facades\App;
 class IndexController extends Controller
 {
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
+    {
+        return response()->json([
+             'documentation'    => 'http://docs.mcapi.de',
+             'endpoint'         => 'http://mcapi.de/api'
+        ], 200);
+    }
+
+    public function apiIndex()
     {
 
         $status = Status::OK();

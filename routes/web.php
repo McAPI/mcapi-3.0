@@ -1,11 +1,13 @@
 <?php
 
+$router->get('/', 'IndexController@index');
+
 $router->group(['prefix' => 'api'], function () use ($router) {
 
     /**
      * Routes for resource index
      */
-    $router->get('/', 'IndexController@index');
+    $router->get('/', 'IndexController@apiIndex');
 
     /**
      * routes for resource game
