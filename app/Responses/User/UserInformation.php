@@ -142,7 +142,7 @@ class UserInformation extends McAPIResponse
 
         //---
         if($this->serveFromCache()) {
-            return $this->getStatus();
+            return $this->setStatus(Status::OK());
         }
 
         $success = McAPIQueue::dispatch((new UserInformationProcess($request, $this)));
@@ -173,7 +173,7 @@ class UserInformation extends McAPIResponse
         //---
         else if($this->isPermanentlyCached() && !($this->isCached())) {
             $this->setData(McAPICache::get($this->permanentCacheKey));
-            return false;
+            return true;
         }
         //---
         else if(!($this->isPermanentlyCached()) && $this->isCached()) {
