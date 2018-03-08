@@ -9,7 +9,7 @@
         "laravel/lumen-framework": "5.5.*",
         "vlucas/phpdotenv": "~2.2",
         "illuminate/redis": "5.5.*",
-        "guzzlehttp/guzzle": "6.0.*",
+        "guzzlehttp/guzzle": "6.3.*",
         "pda/pheanstalk": "~3.0",
         "phpseclib/phpseclib": "~2.0"
     },

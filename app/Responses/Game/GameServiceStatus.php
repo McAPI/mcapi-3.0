@@ -5,8 +5,6 @@ namespace App\Responses\Game;
 use App\CacheTimes;
 use App\Responses\McAPIResponse;
 use App\Status;
-use GuzzleHttp\Exception\RequestException;
-use Psr\Http\Message\ResponseInterface;
 
 class GameServiceStatus extends McAPIResponse
 {
@@ -57,17 +55,7 @@ class GameServiceStatus extends McAPIResponse
         }
 
         try {
-            $promise = self::guzzle()->getAsync($this->service);
-            $promise->then(
-                function(ResponseInterface $response) {
-                    $this->set('status', -1137);
-                },
-                function(RequestException $ex) {
-                    $this->set('status',  -666);
-                }
-            );
-            $promise->wait(true);
-
+            $this->set('status', self::guzzle()->get($this->service)->getStatusCode());
         } catch (\Exception $e) {
             $this->set('status', -1);
         }
