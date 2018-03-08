@@ -5,9 +5,6 @@ namespace App\Responses\Game;
 use App\CacheTimes;
 use App\Responses\McAPIResponse;
 use App\Status;
-use GuzzleHttp\Exception\ConnectException;
-use function GuzzleHttp\Promise\settle;
-
 
 class GameServiceStatus extends McAPIResponse
 {
@@ -59,7 +56,7 @@ class GameServiceStatus extends McAPIResponse
 
         try {
             $this->set('status', self::guzzle()->get($this->service)->getStatusCode());
-        } catch (ConnectException $e) {
+        } catch (\Exception $e) {
             $this->set('status', -1);
         }
 
