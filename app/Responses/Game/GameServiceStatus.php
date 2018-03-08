@@ -55,9 +55,31 @@ class GameServiceStatus extends McAPIResponse
         }
 
         try {
-            $this->set('status', self::guzzle()->get($this->service)->getStatusCode());
+
+
+            try {
+                $guzzle = self::guzzle();
+
+                try {
+                    $response = $guzzle->get($this->service);
+
+                    try {
+                        $this->set('status', -2);
+                    } catch (\Exception $e2) {
+                        $this->set('status', -3);
+                    }
+
+                } catch (\Exception $e1) {
+                    $this->setStatus('status', -4);
+                }
+
+            } catch (\Exception $e0) {
+                $this->setStatus('status', -5);
+            }
+
+            //$this->set('status', self::guzzle()->get($this->service)->getStatusCode());
         } catch (\Exception $e) {
-            $this->set('status', -1);
+            $this->set('status', -6);
         }
 
         $this->setStatus(Status::OK());
