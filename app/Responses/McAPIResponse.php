@@ -324,6 +324,13 @@ abstract class McAPIResponse extends Resource
                     'updated'   => $this->getCacheUpdated(),
                     'expires'   => $this->getCacheExpire()
                 ];
+        } else {
+            $data['cache'] =
+                [
+                    'stored'    => false,
+                    'updated'   => Carbon::now(),
+                    'expires'   => Carbon::now()
+                ];
         }
 
         return $data;
