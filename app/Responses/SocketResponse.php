@@ -13,7 +13,7 @@ abstract class SocketResponse extends McAPIResponse
     private $host;
     private $port;
 
-    private $ipType;
+    private $ipType = -1;
 
     public function __construct(string $host, string $port, $cacheKey = null, array $defaultData, $cacheTimeInMinutes = -1, $cacheStatus = false)
     {
@@ -69,6 +69,10 @@ abstract class SocketResponse extends McAPIResponse
      */
     protected function createSocket(&$socket, int $type, int $protocol)
     {
+        if($this->getIpType() === -1) {
+            return $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), "Invalid IP/host provided.");
+        }
+
         $socket = @socket_create($this->getIpType(), $type, $protocol);
         socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 2, 'usec' => 0));
         socket_set_option($socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 2, 'usec' => 0));
@@ -88,6 +92,10 @@ abstract class SocketResponse extends McAPIResponse
      */
     protected function connectSocket($socket)
     {
+        if($this->getHost() === null) {
+            return $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), "Invalid host provided.");
+        }
+
         socket_set_nonblock($socket);
         $connected = false;
         $now = microtime(true);
@@ -120,9 +128,9 @@ abstract class SocketResponse extends McAPIResponse
         $this->setStatus(Status::OK());
 
         //---
-        $port = intval($port);
-
-        if($port < 0 || $port > 65535) {
+        $isPortInt = is_numeric($port);
+        $port = $isPortInt ? intval($port) : -1;
+        if(($isPortInt === false) || ($port < 0 || $port > 65535)) {
             $this->setStatus(Status::ERROR_CLIENT_BAD_REQUEST(), "Invalid port.");
             return false;
         }

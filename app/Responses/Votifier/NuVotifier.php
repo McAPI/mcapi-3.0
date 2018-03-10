@@ -43,6 +43,10 @@ class NuVotifier extends SocketResponse
     public function fetch(array $request = [], bool $force = false): int
     {
 
+        if($this->getStatus() !== Status::OK()) {
+            return $this->getStatus();
+        }
+
         if($this->identifierType !== IdentifierTypes::USERNAME()) {
             //--- TODO Add support for UUIDs and resolving them correctly. - This is a bit more complicated because if we cannot resolve
             //  the username directly but have to wait for an response, we also have to queue this vote. Maybe it isn't worth the hassle.
