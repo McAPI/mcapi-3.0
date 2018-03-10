@@ -219,6 +219,8 @@ class UserInformation extends McAPIResponse
             $this->set('uuid', IdentifierTypes::cleanUUID($data['id']));
             $this->set('username', $data['name']);
 
+            $this->set('premium', true);
+
             return true;
 
         }
@@ -243,6 +245,8 @@ class UserInformation extends McAPIResponse
 
             $this->set('username', array_last($data)['name']);
             $this->set('history', $data);
+
+            $this->set('premium', true);
 
             return true;
 
@@ -277,6 +281,8 @@ class UserInformation extends McAPIResponse
                 );
             }
             $this->set('properties.decoded', $decoded);
+
+            $this->set('premium', true);
 
             return true;
 
