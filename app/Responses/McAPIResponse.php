@@ -317,7 +317,7 @@ abstract class McAPIResponse extends Resource
                 'data'          => $this->getData()
             ];
 
-        if(!($this->isCacheDisabled())) {
+        if($this->isCacheEnabled()) {
             $data['cache'] =
                 [
                     'stored'    => $this->isCached(),

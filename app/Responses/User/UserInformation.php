@@ -141,7 +141,8 @@ class UserInformation extends McAPIResponse
         }
 
         //---
-        if($this->serveFromCache()) {
+        $servedFromPermanentCache = $this->isPermanentlyCached() && !($this->isCached());
+        if($this->serveFromCache() && !$servedFromPermanentCache) {
             return $this->setStatus(Status::OK());
         }
 
@@ -151,7 +152,7 @@ class UserInformation extends McAPIResponse
             return $this->setStatus(Status::ERROR_INTERNAL_SERVER_ERROR(), "The queue is currently is not available.");
         }
 
-        return $this->setStatus(Status::ACCEPTED());
+        return $this->setStatus($servedFromPermanentCache ? Status::OK() : Status::ACCEPTED());
 
     }
 
