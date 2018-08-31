@@ -6,11 +6,13 @@ namespace App\Responses;
 use App\Exceptions\ExceptionCodes;
 use App\Exceptions\InternalException;
 use App\McAPICache;
+use App\McAPIQueue;
 use App\Status;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\Resource;
+use Illuminate\Queue\RedisQueue;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redis;
 
@@ -272,8 +274,10 @@ abstract class McAPIResponse extends Resource
         }
 
         try {
-            return Carbon::now()->addSeconds(Redis::ttl($this->getCacheKey()));
+            return Carbon::now()->addSeconds(McAPICache::expires($this->getCacheKey()) / 1000);
         } catch(\Exception $e) {
+            //@TODO I don't think this can happen anymore. In the past this was here to prevent exceptions when the cache
+            // wasn't reachable but this should be fixed now by accessing it through another layer (MCAPICache).
             return Carbon::now()->addMinutes($this->cacheTimeInMinutes);
         }
     }

@@ -92,6 +92,12 @@ class UserInformation extends McAPIResponse
                         $this->fetchProfileEndpoint() &&
                         $this->fetchPropertiesEndpoint()
                     ) {
+
+                        //--- store/update for uuid as well
+                        $uuidInformation = new UserInformation($this->get('uuid'));
+                        $uuidInformation->save();
+                        //---
+
                         $this->set('premium', true);
                         $this->setStatus(Status::OK());
                         $this->save();
@@ -105,6 +111,12 @@ class UserInformation extends McAPIResponse
                         $this->fetchMinecraftEndpoint() &&
                         $this->fetchPropertiesEndpoint()
                     ) {
+
+                        //--- store/update for username as well
+                        $uuidInformation = new UserInformation($this->get('username'));
+                        $uuidInformation->save();
+                        //---
+
                         $this->set('premium', true);
                         $this->setStatus(Status::OK());
                         $this->save();
@@ -149,7 +161,7 @@ class UserInformation extends McAPIResponse
         $success = McAPIQueue::dispatch((new UserInformationProcess($request, $this)));
 
         if($success === false) {
-            return $this->setStatus(Status::ERROR_INTERNAL_SERVER_ERROR(), "The queue is currently is not available.");
+            return $this->setStatus(Status::ERROR_INTERNAL_SERVER_ERROR(), "The queue is currently not available.");
         }
 
         return $this->setStatus($servedFromPermanentCache ? Status::OK() : Status::ACCEPTED());

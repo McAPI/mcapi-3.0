@@ -82,4 +82,15 @@ class McAPICache
 
     }
 
+    public static function expires(string $cacheKey)
+    {
+
+        if(self::isAvailable()) {
+            return Redis::pttl($cacheKey);
+        }
+
+        return 0;
+
+    }
+
 }
